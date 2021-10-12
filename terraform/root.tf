@@ -289,6 +289,13 @@ module "upload_file_cloudfront_dirty_s3" {
   abort_incomplete_uploads = true
 }
 
+module "upload_bucket" {
+  source      = "./tdr-terraform-modules/s3"
+  project     = var.project
+  function    = "upload-files"
+  common_tags = local.common_tags
+}
+
 module "file_format_build_task" {
   source            = "./tdr-terraform-modules/ecs"
   common_tags       = local.common_tags

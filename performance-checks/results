@@ -1,0 +1,52 @@
+{
+  "@timestamp": "2021-10-11T17:10:49.413Z",
+  "@version": "1",
+  "message": "Lambda complete in 3 seconds for file ID 'fed04794-bb77-43e6-9bea-78a743ed48fb' and consignment ID 'f51078c1-c008-4727-98a3-aa7e1f50abb3'",
+  "logger_name": "uk.gov.nationalarchives.downloadfiles.Lambda",
+  "thread_name": "main",
+  "level": "INFO",
+  "level_value": 20000,
+  "timeTaken": 3,
+  "fileId": "fed04794-bb77-43e6-9bea-78a743ed48fb",
+  "consignmentId": "f51078c1-c008-4727-98a3-aa7e1f50abb3",
+  "application": "tdr-download-files"
+}
+{
+  "@timestamp": "2021-10-11T11:52:37.128Z",
+  "@version": "1",
+  "message": "Lambda complete in -4 seconds for file ID 'cbdb24ed-c7d9-4744-ac2e-451d7d79c5bf' and consignment ID 'e72dae9a-5e59-426f-8d0b-835b3f98917d'",
+  "logger_name": "uk.gov.nationalarchives.downloadfiles.Lambda",
+  "thread_name": "main",
+  "level": "INFO",
+  "level_value": 20000,
+  "timeTaken": -4,
+  "fileId": "cbdb24ed-c7d9-4744-ac2e-451d7d79c5bf",
+  "consignmentId": "e72dae9a-5e59-426f-8d0b-835b3f98917d",
+  "application": "tdr-download-files"
+}
+{
+  "@timestamp": "2021-10-11T11:52:37.128Z",
+  "@version": "1",
+  "message": "Lambda complete in -4 seconds for file ID 'cbdb24ed-c7d9-4744-ac2e-451d7d79c5bf' and consignment ID 'e72dae9a-5e59-426f-8d0b-835b3f98917d'",
+  "logger_name": "uk.gov.nationalarchives.downloadfiles.Lambda",
+  "thread_name": "main",
+  "level": "INFO",
+  "level_value": 20000,
+  "timeTaken": 20,
+  "fileId": "e2a4ec40-0d97-4774-bd8a-87c63f8fa02d",
+  "consignmentId": "3b80694f-27c6-46fd-8991-25099ee21d1f",
+  "application": "tdr-download-files"
+}
+{
+  "@timestamp": "2021-10-12T08:23:44.330Z",
+  "@version": "1",
+  "message": "Lambda complete in 3 seconds for file ID 'a279e395-8a3c-477e-89ce-6b89b7fba5c9' and consignment ID '457c1545-54ee-4318-99ff-7bda47c31c6a'",
+  "logger_name": "uk.gov.nationalarchives.downloadfiles.Lambda",
+  "thread_name": "main",
+  "level": "INFO",
+  "level_value": 20000,
+  "timeTaken": 3,
+  "fileId": "a279e395-8a3c-477e-89ce-6b89b7fba5c9",
+  "consignmentId": "457c1545-54ee-4318-99ff-7bda47c31c6a",
+  "application": "tdr-download-files"
+}

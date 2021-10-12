@@ -1,6 +1,8 @@
 import sbt._
 
 object Dependencies {
+  private val monovoreDeclineVersion = "2.2.0"
+
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % "11.0.3"
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % "11.0.3"
@@ -10,4 +12,6 @@ object Dependencies {
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.2.9"
   lazy val s3 = "software.amazon.awssdk" % "s3" % "2.17.55"
   lazy val sso = "software.amazon.awssdk" % "sso" % "2.17.55"
+  lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
+  lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
 }
