@@ -2,8 +2,8 @@ package uk.gov.nationalarchives.files.keycloak
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.typesafe.config.ConfigFactory
 import io.circe.generic.auto._
-import sttp.client.circe.asJson
-import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend, basicRequest, _}
+import sttp.client3.circe.asJson
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend, basicRequest, _}
 
 import scala.language.postfixOps
 
@@ -12,7 +12,7 @@ object KeycloakUtility {
 
   def bearerAccessToken(requestBody: Map[String, String]): BearerAccessToken = {
 
-    implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
+    implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
     val authUrl = configuration.getString("tdr.auth.url")
 

@@ -1,23 +1,36 @@
 package uk.gov.nationalarchives.files.aws
 
-import graphql.codegen.AddFilesAndMetadata.AddFilesAndMetadata.AddFilesAndMetadata
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{PutObjectRequest, PutObjectResponse}
-import uk.gov.nationalarchives.files.graphql.GraphqlUtility.MatchIdInfo
+import uk.gov.nationalarchives.files.api.GraphqlUtility._
+import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
 
+import java.nio.file.Path
 import java.util.UUID
 
 object S3Upload {
-  def upload(userId: UUID, consignmentId: UUID, filesAndMetadata: List[AddFilesAndMetadata], matchIdInfo: List[MatchIdInfo]): List[PutObjectResponse] = {
-    val idMap = matchIdInfo.map(m => m.matchId -> m.path).toMap
-    val client = S3Client.builder
-      .credentialsProvider(ProfileCredentialsProvider.builder().profileName("sandbox").build)
-      .build()
-    filesAndMetadata.map(f => {
+
+  def client: S3Client = S3Client.builder
+    .credentialsProvider(assumeRoleProvider)
+    .build()
+
+  def uploadLambdaFile(key: String): PutObjectResponse = {
+    val bucket = "tdr-backend-checks-sbox"
+    val request = PutObjectRequest.builder()
+      .bucket(bucket)
+      .key(key)
+      .build
+    client.putObject(request, Path.of(key))
+  }
+
+  def uploadConsignmentFiles(userId: UUID, consignmentData: ConsignmentData): List[PutObjectResponse] = {
+    val idMap = consignmentData.matchIdInfo.map(m => m.matchId -> m.path).toMap
+
+
+    consignmentData.files.map(f => {
       val request = PutObjectRequest.builder()
         .bucket("tdr-upload-files-cloudfront-dirty-sbox")
-        .key(s"$userId/$consignmentId/${f.fileId}")
+        .key(s"$userId/${consignmentData.consignmentId}/${f.fileId}")
         .build
       client.putObject(request, idMap(f.matchId.toInt))
     })

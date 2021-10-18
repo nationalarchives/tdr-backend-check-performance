@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.files.checksum
 
 import cats.effect.{IO, Resource}
-import uk.gov.nationalarchives.files.graphql.GraphqlUtility.MatchIdInfo
+import uk.gov.nationalarchives.files.api.GraphqlUtility.MatchIdInfo
 
 import java.io.{File, FileInputStream}
 import java.nio.file.Path

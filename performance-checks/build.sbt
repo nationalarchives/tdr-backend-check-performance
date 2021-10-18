@@ -12,18 +12,34 @@ lazy val root = (project in file("."))
     name := "performance-checks",
     Universal / packageName := "performance",
     libraryDependencies ++= Seq(
-      decline,
-      declineEffect,
       keycloakCore,
       keycloakAdmin,
       generatedGraphql,
       graphqlClient,
       typesafeConfig,
       catsEffect,
+      lambda,
+      logs,
+      loadBalancing,
+      rds,
       s3,
-      sso
+      sso,
+      sts,
+      ssm,
+      sttp,
+      sttpCirce,
+      sqlite,
+      doobie,
+      decline,
+      declineEffect,
+      catsRetry
+    ).map(_.exclude("org.slf4j", "*")),
+    libraryDependencies ++= Seq(
+      logback
     ),
     mapGenericFilesToLinux
   ).enablePlugins(JavaAppPackaging, UniversalPlugin)
+
+addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 
 

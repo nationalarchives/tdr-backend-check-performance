@@ -389,3 +389,22 @@ module "api_update_lambda" {
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
 }
+
+module "ecr_consignment_api_repository" {
+  source           = "./tdr-terraform-modules/ecr"
+  name             = "consignment-api"
+  image_source_url = "https://github.com/nationalarchives/tdr-consignment-api/blob/master/Dockerfile"
+  policy_name      = "sandbox_performance_check_policy"
+  policy_variables = { management_account = data.aws_ssm_parameter.management_account.value, sandbox_account=data.aws_caller_identity.current.account_id }
+  common_tags      = local.common_tags
+}
+
+module "ecr_auth_server_repository" {
+  source           = "./tdr-terraform-modules/ecr"
+  name             = "auth-server"
+  image_source_url = "https://github.com/nationalarchives/tdr-auth-server/blob/master/Dockerfile"
+  policy_name      = "sandbox_performance_check_policy"
+  policy_variables = { management_account = data.aws_ssm_parameter.management_account.value, sandbox_account=data.aws_caller_identity.current.account_id }
+  common_tags      = local.common_tags
+}
+

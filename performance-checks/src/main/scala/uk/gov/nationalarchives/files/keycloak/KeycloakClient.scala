@@ -1,25 +1,26 @@
 package uk.gov.nationalarchives.files.keycloak
 
 import com.typesafe.config.ConfigFactory
+
 import javax.ws.rs.core.Response
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.resource.{RealmResource, UsersResource}
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.keycloak.representations.idm.{CredentialRepresentation, UserRepresentation}
-import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
+import uk.gov.nationalarchives.files.aws.SystemsManagerUtils
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 object KeycloakClient {
-  implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
+  implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
   private val configuration = ConfigFactory.load()
   private val authUrl: String = configuration.getString("tdr.auth.url")
   private val userAdminClient: String = configuration.getString("keycloak.user.admin.client")
-  private val userAdminSecret: String = configuration.getString("keycloak.user.admin.secret")
 
-  private def keyCloakAdminClient(): Keycloak = KeycloakBuilder.builder()
+  private def keyCloakAdminClient(userAdminSecret: String): Keycloak = KeycloakBuilder.builder()
     .serverUrl(s"$authUrl/auth")
     .realm("tdr")
     .clientId(userAdminClient)
@@ -30,8 +31,9 @@ object KeycloakClient {
   private def realmResource(client: Keycloak): RealmResource = client.realm("tdr")
   private def userResource(realm: RealmResource): UsersResource = realm.users()
 
-  def createUser(userCredentials: UserCredentials, body: Option[String] = Some("MOCK1")): String = {
-    val client = keyCloakAdminClient()
+  def createUser(userCredentials: UserCredentials): String = {
+    val adminSecret = SystemsManagerUtils.sandboxParameter("/sbox/keycloak/user_admin_client/secret")
+    val client = keyCloakAdminClient(adminSecret)
     val realm = realmResource(client)
     val user = userResource(realm)
 
@@ -49,7 +51,7 @@ object KeycloakClient {
     userRepresentation.setLastName(userCredentials.lastName)
     userRepresentation.setEnabled(true)
     userRepresentation.setCredentials(creds)
-    body.foreach(b => userRepresentation.setAttributes(Map("body" -> List(b).asJava).asJava))
+    userRepresentation.setAttributes(Map("body" -> List("MOCK1").asJava).asJava)
     userRepresentation.setRealmRoles(List("tdr_user").asJava)
 
     val response: Response = user.create(userRepresentation)
@@ -59,8 +61,8 @@ object KeycloakClient {
     path
   }
 
-  def deleteUser(userId: String): Unit = {
-    val client = keyCloakAdminClient()
+  def deleteUser(userId: String, adminSecret: String): Unit = {
+    val client = keyCloakAdminClient(adminSecret)
     val realm = realmResource(client)
     val user = userResource(realm)
 
