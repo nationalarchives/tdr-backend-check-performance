@@ -35,7 +35,7 @@ generateChangelogFile := {
 
 lazy val root = (project in file("."))
   .settings(
-    name := "performance-checks",
+    name := "tdr-backend-check-performance",
     Universal / packageName := "performance",
     libraryDependencies ++= Seq(
       keycloakCore,
