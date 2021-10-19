@@ -15,8 +15,12 @@ ThisBuild / resolvers +="TDR Releases" at "s3://tdr-releases-mgmt"
 lazy val generateChangelogFile = taskKey[Unit]("Generates a changelog file from the last version")
 
 generateChangelogFile := {
-  val lastTag = "git describe --tags --abbrev=0".!!.replace("\n","")
-  val gitLog = s"git log $lastTag..HEAD --oneline".!!
+  val changelog = if(Seq("git", "describe", "--tags", "--abbrev=0").! == 0) {
+    val lastTag = "git describe --tags --abbrev=0".!!.replace("\n","")
+    s"git log $lastTag..HEAD --oneline".!!
+  } else {
+    "Initial release"
+  }
   val folderName = s"${baseDirectory.value}/notes"
   val fileName = s"${version.value}.markdown"
   val fullPath = s"$folderName/$fileName"
@@ -24,7 +28,7 @@ generateChangelogFile := {
   val file = new File(fullPath)
   if(!file.exists()) {
     new File(fullPath).createNewFile
-    Files.write(Paths.get(fullPath), gitLog.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get(fullPath), changelog.getBytes(StandardCharsets.UTF_8))
   }
   s"git add $fullPath".!!
 }
