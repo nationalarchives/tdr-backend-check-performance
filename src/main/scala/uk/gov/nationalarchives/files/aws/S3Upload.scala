@@ -5,7 +5,7 @@ import software.amazon.awssdk.services.s3.model.{PutObjectRequest, PutObjectResp
 import uk.gov.nationalarchives.files.api.GraphqlUtility._
 import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 
-import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.UUID
 
 object S3Upload {
@@ -20,7 +20,7 @@ object S3Upload {
       .bucket(bucket)
       .key(key)
       .build
-    client.putObject(request, Path.of(key))
+    client.putObject(request, Paths.get(key))
   }
 
   def uploadConsignmentFiles(userId: UUID, consignmentData: ConsignmentData): List[PutObjectResponse] = {

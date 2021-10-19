@@ -5,7 +5,7 @@ import scalatags.Text.all._
 import uk.gov.nationalarchives.files.database.Database.AggregateResults
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Paths}
 
 object HtmlReport {
   case class TimeTakenByCheck(check: String, timeTaken: Double)
@@ -79,6 +79,6 @@ object HtmlReport {
         )
       )
     ).render
-    Files.write(Path.of("output.html"), report.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get("output.html"), report.getBytes(StandardCharsets.UTF_8))
   }
 }

@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource}
 import uk.gov.nationalarchives.files.api.GraphqlUtility.MatchIdInfo
 
 import java.io.{File, FileInputStream}
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import java.security.MessageDigest
 
 object ChecksumGenerator {
@@ -22,6 +22,6 @@ object ChecksumGenerator {
       }
       checksum <- IO(messageDigester.digest)
       mapped <- IO(checksum.map(byte => f"$byte%02x").mkString)
-    } yield MatchIdInfo(mapped, Path.of(path), index, Files.size(Path.of(path)))
+    } yield MatchIdInfo(mapped, Paths.get(path), index, Files.size(Paths.get(path)))
   }
 }
