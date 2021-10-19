@@ -30,7 +30,7 @@ generateChangelogFile := {
     new File(fullPath).createNewFile
     Files.write(Paths.get(fullPath), changelog.getBytes(StandardCharsets.UTF_8))
   }
-  s"git add '$fullPath'".!!
+  s"git add $fullPath".!!
 }
 
 lazy val root = (project in file("."))
