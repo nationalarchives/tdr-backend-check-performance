@@ -1,0 +1,33 @@
+pipeline {
+  agent {
+    label "built-in"
+  }
+
+  stages {
+    stage('Run Terraform build') {
+      agent {
+        ecs {
+          inheritFrom "${terraformNode}"
+          taskrole "arn:aws:iam::${env.SANDBOX_ACCOUNT}:role/TDRJenkinsAppTaskRoleMgmt"
+        }
+      }
+      stages {
+        stage('Set up Terraform workspace') {
+          steps {
+            dir("terraform") {
+              echo 'Initializing Terraform...'
+              sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
+              sh "git clone https://github.com/nationalarchives/tdr-terraform-environments.git"
+              sh "checks -t"
+            }
+          }
+        }
+      }
+    }
+    stage('Run report') {
+      steps {
+        "checks -cr project"
+      }
+    }
+  }
+}

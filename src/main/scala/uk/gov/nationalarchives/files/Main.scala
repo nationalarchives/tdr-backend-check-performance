@@ -105,15 +105,23 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     }
   }
 
+  def runTerraform(runTerraform: Boolean): IO[Unit] = {
+    if(runTerraform) {
+      for {
+        _ <- Terraform.init()
+        _ <- Terraform.selectWorkspace()
+        _ <- retry(Terraform.apply)
+      } yield ()
+    } else {
+      IO.unit
+    }
+  }
+
   override def main: Opts[IO[ExitCode]] = {
     performanceChecks map {
       case PerformanceChecks(files, create, results, destroy, terraform) =>
         for {
-          _ <- if(terraform) {
-            retry(Terraform.apply)
-          } else {
-            IO.unit
-          }
+          _ <- runTerraform(terraform)
           _ <- setupResources(create)
           _ <- createFileCheckResults(files, results)
           _ <- destroyResources(destroy)
