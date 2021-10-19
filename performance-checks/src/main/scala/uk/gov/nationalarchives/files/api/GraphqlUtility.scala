@@ -87,6 +87,6 @@ class GraphqlUtility(userCredentials: UserCredentials) {
 
 object GraphqlUtility {
   case class ConsignmentData(consignmentId: UUID, matchIdInfo: List[MatchIdInfo], files: List[AddFilesAndMetadata])
-  case class MatchIdInfo(checksum: String, path: Path, matchId: Int)
+  case class MatchIdInfo(checksum: String, path: Path, matchId: Int, fileSize: Long)
   def apply(userCredentials: UserCredentials): GraphqlUtility = new GraphqlUtility(userCredentials)
 }

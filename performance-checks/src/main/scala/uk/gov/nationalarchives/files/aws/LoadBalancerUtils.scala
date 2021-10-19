@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters._
 
 object LoadBalancerUtils {
   def client = ElasticLoadBalancingV2AsyncClient.builder
-    .credentialsProvider(Credentials.assumeRoleProvider)
+    .credentialsProvider(STSUtils.assumeRoleProvider)
     .build()
 
   private def areServicesHealthy(services: List[String]) = {
@@ -27,7 +27,7 @@ object LoadBalancerUtils {
   def waitForServices(services: List[String]): IO[Boolean] = {
     for {
       areHealthy <- areServicesHealthy(services)
-      healthy <- if(areHealthy.count(healthy => healthy) > 0) {
+      healthy <- if(areHealthy.count(healthy => healthy) == services.size) {
         IO(true)
       } else {
         IO.sleep(10.seconds).flatMap(_ => waitForServices(services))

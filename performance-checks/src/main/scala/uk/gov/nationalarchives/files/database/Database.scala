@@ -7,6 +7,9 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor.Aux
 import uk.gov.nationalarchives.files.Main.FileCheckResults
 import uk.gov.nationalarchives.files.api.GraphqlUtility.ConsignmentData
+import uk.gov.nationalarchives.files.database.Database.{AggregateResult, AggregateResults}
+
+import scala.math.BigDecimal.RoundingMode
 
 class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
 
@@ -18,7 +21,8 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
     CREATE TABLE files (
       consignmentId TEXT NOT NULL,
       fileId  TEXT NOT NULL,
-      filePath TEXT NOT NULL
+      filePath TEXT NOT NULL,
+      fileSize NUMERIC
     )
   """.update.run
 
@@ -33,11 +37,12 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
   }
 
   def insertFiles(consignment: ConsignmentData): IO[List[Int]] = {
-    def filesInsert(consignmentId: String, fileId: String, filePath: String): doobie.ConnectionIO[Int] =
-      sql"INSERT INTO files (consignmentId, fileId, filePath) values ($consignmentId, $fileId, $filePath)".update.run
+    def filesInsert(consignmentId: String, fileId: String, filePath: String, fileSize: Long): doobie.ConnectionIO[Int] =
+      sql"INSERT INTO files (consignmentId, fileId, filePath, fileSize) values ($consignmentId, $fileId, $filePath, $fileSize)".update.run
 
     consignment.files.map(file => {
-      filesInsert(consignment.consignmentId.toString, file.fileId.toString, consignment.matchIdInfo.find(_.matchId == file.matchId).head.path.toString).transact(xa)
+      val matchedFile = consignment.matchIdInfo.find(_.matchId == file.matchId).head
+      filesInsert(consignment.consignmentId.toString, file.fileId.toString, matchedFile.path.toString, matchedFile.fileSize).transact(xa)
     }).sequence
   }
 
@@ -47,9 +52,24 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
       fileCheck.results.map(result => insert(result.fileId.toString, result.timeTaken).update.run.transact(xa))
     }).sequence
   }
+
+  def getAggregateResults() = {
+    fileCheckNames.map(fileCheck => {
+      val checkName = fileCheck.split("_").map(_.capitalize).mkString(" ")
+      Fragment(s"select f.filePath, f.fileSize, avg(timeTaken), count(*) from files f JOIN $fileCheck c on c.fileId = f.fileId group by 1,2", Nil).query[(String, Long, Double, Long)].to[List].transact(xa).map(results => {
+        val resultList = results.map(res => {
+          val (filePath, fileSize, timeTaken, count) = res
+          AggregateResult(filePath, fileSize, BigDecimal(timeTaken).setScale(3, RoundingMode.HALF_UP).toDouble, count)
+        })
+        AggregateResults(checkName, resultList)
+      })
+    }).sequence
+  }
 }
 
 object Database {
+  case class AggregateResults(checkName: String, results: List[AggregateResult])
+  case class AggregateResult(filePath: String, fileSize: Long, timeTaken: Double, count: Long)
   def apply(fileCheckNames: List[String]) = new Database(
     Transactor.fromDriverManager[IO](
       "org.sqlite.JDBC", "jdbc:sqlite:performance.db", "", ""

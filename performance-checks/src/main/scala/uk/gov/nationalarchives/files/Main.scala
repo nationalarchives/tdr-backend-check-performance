@@ -6,7 +6,7 @@ import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import uk.gov.nationalarchives.files.api.GraphqlUtility
 import uk.gov.nationalarchives.files.arguments.Args.{PerformanceChecks, performanceChecks}
-import uk.gov.nationalarchives.files.aws.Credentials.{managementAccountNumber, sandboxAccountNumber}
+import uk.gov.nationalarchives.files.aws.STSUtils.{managementAccountNumber, sandboxAccountNumber}
 import uk.gov.nationalarchives.files.aws.LambdaUtils._
 import uk.gov.nationalarchives.files.aws.LoadBalancerUtils._
 import uk.gov.nationalarchives.files.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Upload}
@@ -15,6 +15,9 @@ import uk.gov.nationalarchives.files.docker.Docker._
 import uk.gov.nationalarchives.files.keycloak.{KeycloakClient, UserCredentials}
 import uk.gov.nationalarchives.files.retry.Retry.retry
 import uk.gov.nationalarchives.files.terraform.Terraform
+import uk.gov.nationalarchives.files.aws.ECSUtils._
+import uk.gov.nationalarchives.files.csv.CsvReport
+import uk.gov.nationalarchives.files.html.HtmlReport
 
 import java.nio.file.Path
 import java.util.UUID
@@ -35,13 +38,14 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     )
     if(createResources) {
       for {
-        _ <- retry(Terraform.apply)
-        _ <- updateDockerImages("consignment-api", managementAccountNumber, sandboxAccountNumber)
-        _ <- updateDockerImages("auth-server", managementAccountNumber, sandboxAccountNumber)
-        _ <- updateDockerImages("file-format-build", managementAccountNumber, sandboxAccountNumber)
+//        _ <- retry(Terraform.apply)
+//        _ <- updateDockerImages("consignment-api", managementAccountNumber, sandboxAccountNumber)
+//        _ <- updateDockerImages("auth-server", managementAccountNumber, sandboxAccountNumber)
+//        _ <- updateDockerImages("file-format-build", managementAccountNumber, sandboxAccountNumber)
         _ <- updateLambdas(lambdas)
-        _ <- invokeLambdas(List("create-db-users", "create-keycloak-db-user", "database-migrations"))
-        _ <- waitForServices(List("consignmentapi", "keycloak"))
+        _ <- retry(invokeLambdas, List("create-db-users", "create-keycloak-db-user", "database-migrations"))
+//        _ <- runFileFormatTask()
+//        _ <- waitForServices(List("consignmentapi", "keycloak"))
       } yield ()
     } else {
       IO.unit
@@ -60,6 +64,8 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         @tailrec
         def checkFileProgress(consignmentId: UUID): Unit = {
           if (graphqlClient.areFileChecksComplete(consignmentId)) {
+            //There can be a slight delay getting the logs into Cloudwatch so wait for 30s
+            Thread.sleep(30000)
             ()
           } else {
             Thread.sleep(5000)
@@ -71,13 +77,16 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         val database = Database(checkNames)
         for {
           _ <- database.createTables()
-          _ <- LogUtils.deleteExistingLogStreams(checkNames)
-          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
-          _ <- database.insertFiles(consignment)
-          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
-          _ <- IO(checkFileProgress(consignment.consignmentId))
-          fileCheckResults <- LogUtils.getResults(checkNames)
-          _ <- database.insertResults(fileCheckResults)
+//          _ <- LogUtils.deleteExistingLogStreams(checkNames)
+//          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
+//          _ <- database.insertFiles(consignment)
+//          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
+//          _ <- IO(checkFileProgress(consignment.consignmentId))
+//          fileCheckResults <- LogUtils.getResults(checkNames)
+//          _ <- database.insertResults(fileCheckResults)
+//          aggregateResults <- database.getAggregateResults()
+//          report <- HtmlReport.createReport(aggregateResults)
+//          csv <- CsvReport.csvReport(aggregateResults)
         } yield ()
       }).head
     } else {

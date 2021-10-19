@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.files.aws
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{PutObjectRequest, PutObjectResponse}
 import uk.gov.nationalarchives.files.api.GraphqlUtility._
-import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
+import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 
 import java.nio.file.Path
 import java.util.UUID

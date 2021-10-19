@@ -6,7 +6,7 @@ import cats.implicits._
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsAsyncClient
 import software.amazon.awssdk.services.cloudwatchlogs.model.{DeleteLogStreamRequest, DescribeLogStreamsRequest, GetLogEventsRequest, LogStream}
 import uk.gov.nationalarchives.files.Main.{FileCheckResults, Result}
-import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
+import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
 
 import scala.jdk.CollectionConverters._

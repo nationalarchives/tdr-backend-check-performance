@@ -1,5 +1,4 @@
 import Dependencies._
-import com.typesafe.sbt.packager.linux.LinuxPlugin.mapGenericFilesToLinux
 
 ThisBuild / scalaVersion     := "2.13.6"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
@@ -23,6 +22,9 @@ lazy val root = (project in file("."))
       loadBalancing,
       rds,
       s3,
+      ecr,
+      ecs,
+      ec2,
       sso,
       sts,
       ssm,
@@ -32,14 +34,12 @@ lazy val root = (project in file("."))
       doobie,
       decline,
       declineEffect,
-      catsRetry
+      catsRetry,
+      scalaTags,
+      cormorant,
+      cormorantGeneric
     ).map(_.exclude("org.slf4j", "*")),
     libraryDependencies ++= Seq(
       logback
-    ),
-    mapGenericFilesToLinux
+    )
   ).enablePlugins(JavaAppPackaging, UniversalPlugin)
-
-addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
-
-

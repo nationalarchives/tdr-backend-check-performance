@@ -11,11 +11,12 @@ import software.amazon.awssdk.services.lambda.{LambdaAsyncClient, LambdaClient}
 import software.amazon.awssdk.services.lambda.model.{InvokeRequest, InvokeResponse, UpdateFunctionCodeRequest, UpdateFunctionCodeResponse}
 import sttp.model.Uri
 import uk.gov.nationalarchives.files.Main.Lambda
-import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
+import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import scala.jdk.FutureConverters.CompletionStageOps
+import scala.concurrent.duration._
 
 object LambdaUtils {
   def lambdaClient = LambdaAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
@@ -38,7 +39,13 @@ object LambdaUtils {
 
   def invokeLambdas(lambdaNames: List[String]): IO[List[InvokeResponse]] = {
     lambdaNames.map(name => {
-      lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$name-sbox").build()).toIO
+      lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$name-sbox").build()).toIO.flatMap(response => {
+        if(response.statusCode() == 200) {
+          IO(response)
+        } else {
+          IO.raiseError(new Exception(""))
+        }
+      })
     }).sequence
   }
 
@@ -62,6 +69,7 @@ object LambdaUtils {
           _ <- IO(S3Upload.uploadLambdaFile(file.getPath))
           lambdaResponse <- updateFunctionCode(s"tdr-$lambdaName-sbox", file.getPath)
           _ <- IO.println(lambdaResponse)
+          _ <- IO.sleep(20.seconds) //Wait before invoking lambdas as this can fail
         } yield {
           lambdaResponse
         }

@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.files.aws
 
 import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest
-import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
+import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 
 object SystemsManagerUtils {
   def managementParameter(name: String): String = {

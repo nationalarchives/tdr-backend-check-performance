@@ -1,12 +1,33 @@
 package uk.gov.nationalarchives.files.docker
 import cats.effect.IO
+import software.amazon.awssdk.services.ecr.EcrAsyncClient
+import software.amazon.awssdk.services.ecr.model.{GetAuthorizationTokenRequest, GetAuthorizationTokenResponse}
+import uk.gov.nationalarchives.files.aws.STSUtils.{assumeRoleProvider, managementAccountNumber, sandboxAccountNumber}
+import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
 
+import java.util.Base64
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.sys.process._
 
 object Docker {
-  def login(accountNumber: String) = {
-    val command = "aws ecr get-login-password --region eu-west-2" #| s"docker login --username AWS --password-stdin $accountNumber.dkr.ecr.eu-west-2.amazonaws.com"
-    IO(command.!)
+
+  private def login(client: EcrAsyncClient, accountNumber: String) = {
+    for {
+      authToken <- client.getAuthorizationToken(GetAuthorizationTokenRequest.builder.build()).toIO
+    } yield {
+      val token = new String(Base64.getDecoder.decode(authToken.authorizationData.asScala.head.authorizationToken))
+      val password = token.split(":").last
+      val process = s"echo $password" #| s"docker login --username AWS --password-stdin $accountNumber.dkr.ecr.eu-west-2.amazonaws.com"
+      process.!
+    }
+  }
+
+  def sandboxLogin(): IO[Int] = {
+    login(EcrAsyncClient.builder.credentialsProvider(assumeRoleProvider).build(), sandboxAccountNumber)
+  }
+
+  def managementLogin(): IO[Int] = {
+    login(EcrAsyncClient.builder.build(), managementAccountNumber)
   }
 
   private def image(accountNumber: String, imageName: String, tag: String) = s"$accountNumber.dkr.ecr.eu-west-2.amazonaws.com/$imageName:$tag"
@@ -28,11 +49,11 @@ object Docker {
 
   def updateDockerImages(imageName: String, managementAccountNumber: String, sandboxAccountNumber: String) =
     for {
-      _ <- login(managementAccountNumber)
+      _ <- managementLogin()
       _ <- pull(DockerImage(imageName, managementAccountNumber, "intg"))
       _ <- tag(DockerImage(imageName, managementAccountNumber, "intg"), sandboxAccountNumber, "sbox")
-      _ <- login(sandboxAccountNumber)
-      _ <- push(DockerImage(imageName, sandboxAccountNumber, "intg"))
+      _ <- sandboxLogin()
+      _ <- push(DockerImage(imageName, sandboxAccountNumber, "sbox"))
     } yield ()
 
   case class DockerImage(imageName: String, accountNumber: String, tag: String)

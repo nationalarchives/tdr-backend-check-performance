@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.files.aws
 import cats.effect.IO
 import software.amazon.awssdk.services.rds.RdsAsyncClient
 import software.amazon.awssdk.services.rds.model.{DBCluster, DescribeDbClustersRequest, ModifyDbClusterRequest, ModifyDbClusterResponse}
-import uk.gov.nationalarchives.files.aws.Credentials.assumeRoleProvider
+import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
 import cats.implicits._
 
