@@ -56,9 +56,9 @@ object HtmlReport {
                   thead(
                     tr(
                       th(scoped := "col")("File Path"),
-                      th(scoped := "col")("File Size"),
-                      th(scoped := "col")(s"Time Taken"),
-                      th(scoped := "col")(s"Count")
+                      th(scoped := "col")("File Size (bytes)"),
+                      th(scoped := "col")(s"Time Taken (seconds)"),
+                      th(scoped := "col")(s"Number of executions")
                     )
                   ),
                   tbody(
@@ -67,7 +67,7 @@ object HtmlReport {
                         td(row.filePath),
                         td(row.fileSize),
                         td(row.timeTaken),
-                        td(row.count)
+                        td(row.numberOfExecutions)
                       )
                   )
                 )

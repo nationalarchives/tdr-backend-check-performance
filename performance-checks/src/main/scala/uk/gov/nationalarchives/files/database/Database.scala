@@ -69,7 +69,7 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
 
 object Database {
   case class AggregateResults(checkName: String, results: List[AggregateResult])
-  case class AggregateResult(filePath: String, fileSize: Long, timeTaken: Double, count: Long)
+  case class AggregateResult(filePath: String, fileSize: Long, timeTaken: Double, numberOfExecutions: Long)
   def apply(fileCheckNames: List[String]) = new Database(
     Transactor.fromDriverManager[IO](
       "org.sqlite.JDBC", "jdbc:sqlite:performance.db", "", ""

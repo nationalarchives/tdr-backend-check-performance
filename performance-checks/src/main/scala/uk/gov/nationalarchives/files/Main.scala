@@ -38,14 +38,13 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     )
     if(createResources) {
       for {
-//        _ <- retry(Terraform.apply)
-//        _ <- updateDockerImages("consignment-api", managementAccountNumber, sandboxAccountNumber)
-//        _ <- updateDockerImages("auth-server", managementAccountNumber, sandboxAccountNumber)
-//        _ <- updateDockerImages("file-format-build", managementAccountNumber, sandboxAccountNumber)
+        _ <- updateDockerImages("consignment-api", managementAccountNumber, sandboxAccountNumber)
+        _ <- updateDockerImages("auth-server", managementAccountNumber, sandboxAccountNumber)
+        _ <- updateDockerImages("file-format-build", managementAccountNumber, sandboxAccountNumber)
         _ <- updateLambdas(lambdas)
         _ <- retry(invokeLambdas, List("create-db-users", "create-keycloak-db-user", "database-migrations"))
-//        _ <- runFileFormatTask()
-//        _ <- waitForServices(List("consignmentapi", "keycloak"))
+        _ <- runFileFormatTask()
+        _ <- waitForServices(List("consignmentapi", "keycloak"))
       } yield ()
     } else {
       IO.unit
@@ -77,16 +76,16 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         val database = Database(checkNames)
         for {
           _ <- database.createTables()
-//          _ <- LogUtils.deleteExistingLogStreams(checkNames)
-//          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
-//          _ <- database.insertFiles(consignment)
-//          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
-//          _ <- IO(checkFileProgress(consignment.consignmentId))
-//          fileCheckResults <- LogUtils.getResults(checkNames)
-//          _ <- database.insertResults(fileCheckResults)
-//          aggregateResults <- database.getAggregateResults()
-//          report <- HtmlReport.createReport(aggregateResults)
-//          csv <- CsvReport.csvReport(aggregateResults)
+          _ <- LogUtils.deleteExistingLogStreams(checkNames)
+          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
+          _ <- database.insertFiles(consignment)
+          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
+          _ <- IO(checkFileProgress(consignment.consignmentId))
+          fileCheckResults <- LogUtils.getResults(checkNames)
+          _ <- database.insertResults(fileCheckResults)
+          aggregateResults <- database.getAggregateResults()
+          _ <- HtmlReport.createReport(aggregateResults)
+          _ <- CsvReport.csvReport(aggregateResults)
         } yield ()
       }).head
     } else {
@@ -108,8 +107,13 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
 
   override def main: Opts[IO[ExitCode]] = {
     performanceChecks map {
-      case PerformanceChecks(files, create, results, destroy) =>
+      case PerformanceChecks(files, create, results, destroy, terraform) =>
         for {
+          _ <- if(terraform) {
+            retry(Terraform.apply)
+          } else {
+            IO.unit
+          }
           _ <- setupResources(create)
           _ <- createFileCheckResults(files, results)
           _ <- destroyResources(destroy)
