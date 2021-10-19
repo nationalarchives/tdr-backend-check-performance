@@ -17,7 +17,7 @@ object Terraform {
       "AWS_SECRET_ACCESS_KEY" -> credentials.secretAccessKey,
       "AWS_SESSION_TOKEN" -> credentials.sessionToken
     )
-    val file = new File("../terraform")
+    val file = new File("terraform")
     val process = Process(s"$terraformCommand $terraformArg --auto-approve", file, envCredentials: _*).run(ProcessLogger(s =>
       println(s)
     ))
