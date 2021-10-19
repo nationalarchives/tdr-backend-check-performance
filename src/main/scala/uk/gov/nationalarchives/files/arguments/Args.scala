@@ -14,7 +14,7 @@ object Args {
   val destroyResources: Opts[Boolean] = Opts.flag("destroy-resources", "Whether to run terraform destroy", "d").orFalse
   val runTerraform: Opts[Boolean] = Opts.flag("run-terraform", "Whether to run terraform apply", "t").orFalse
 
-  val performanceChecks: Opts[PerformanceChecks] = (files, createResources, createResults, destroyResources, terraform) mapN {
+  val performanceChecks: Opts[PerformanceChecks] = (files, createResources, createResults, destroyResources, runTerraform) mapN {
     (files, create, results, resources, terraform) => PerformanceChecks(files, create, results, resources, terraform)
   }
 }
