@@ -42,8 +42,6 @@ object Terraform {
   }
 
   def init(): IO[Int] = IO(Seq(terraformCommand, "init").!)
-  def selectWorkspace(): IO[Int] = IO(Process(Seq(terraformCommand, "workspace", "select", "sbox"), None, envCredentials: _*).!)
-
 
   def apply(): IO[Int] = command("apply")
 
