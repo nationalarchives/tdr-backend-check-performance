@@ -7,17 +7,10 @@ locals {
     "TerraformSource" = "https://github.com/nationalarchives/tdr-backend-checks-performance"
   }
   )
-  environment = terraform.workspace
-  environment_domain = local.environment == "prod" ? "${var.project}.${var.domain}" : "${var.project}-${local.environment_full_name}.${var.domain}"
+  environment = "sbox"
+  environment_domain = "${var.project}-${local.environment_full_name}.${var.domain}"
 
-  environment_full_name_map = {
-    "intg"    = "integration",
-    "staging" = "staging",
-    "prod"    = "production",
-    "sbox" = "sandbox"
-  }
-
-  environment_full_name = local.environment_full_name_map[local.environment]
+  environment_full_name = "sandbox"
 
   dns_zone_id = data.aws_route53_zone.tdr_dns_zone.zone_id
 

@@ -12,7 +12,7 @@ module "consignment_api" {
   common_tags                    = local.common_tags
   database_availability_zones    = local.database_availability_zones
   environment                    = local.environment
-  environment_full_name          = local.environment_full_name_map[local.environment]
+  environment_full_name          = local.environment_full_name
   private_subnets                = module.shared_vpc.private_subnets
   public_subnets                 = module.shared_vpc.public_subnets
   vpc_id                         = module.shared_vpc.vpc_id
@@ -52,7 +52,7 @@ module "keycloak" {
   dns_zone_id                   = local.dns_zone_id
   dns_zone_name_trimmed         = local.dns_zone_name_trimmed
   environment                   = local.environment
-  environment_full_name         = local.environment_full_name_map[local.environment]
+  environment_full_name         = local.environment_full_name
   common_tags                   = local.common_tags
   database_availability_zones   = local.database_availability_zones
   az_count                      = 2
