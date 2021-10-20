@@ -8,6 +8,16 @@ import java.io.File
 import scala.sys.process._
 
 object Terraform {
+  trait Command {
+    def autoApprove: Boolean = false
+    val autoApproveArg: String = if(autoApprove) "--auto-approve" else ""
+    def command: String
+    def commandString: String = s"$command $autoApproveArg"
+  }
+  case class Init(command: String = "init") extends Command
+  case class Apply(command: String = "apply", override val autoApprove: Boolean) extends Command
+  case class Destroy(command: String = "destroy", override val autoApprove: Boolean) extends Command
+
   val terraformCommand: String = ConfigFactory.load().getString("terraform.command")
   def envCredentials: List[(String, String)] = {
     val credentials = assumeRoleCredentials
@@ -19,10 +29,10 @@ object Terraform {
     )
   }
 
-  private def command(terraformArg: String) = {
+  private def command(command: Command) = {
 
     val file = new File("terraform")
-    val process = Process(s"$terraformCommand $terraformArg --auto-approve", file, envCredentials: _*).run(ProcessLogger(s =>
+    val process = Process(s"$terraformCommand ${command.commandString}", file, envCredentials: _*).run(ProcessLogger(s =>
       println(s)
     ))
     def checkIfFinished(): Int = {
@@ -41,9 +51,9 @@ object Terraform {
     }
   }
 
-  def init(): IO[Int] = IO(Seq(terraformCommand, "init").!)
+  def init(): IO[Int] = command(Init())
 
-  def apply(): IO[Int] = command("apply")
+  def apply(): IO[Int] = command(Apply(autoApprove = true))
 
-  def destroy(): IO[Int] = command("destroy")
+  def destroy(): IO[Int] = command(Destroy(autoApprove = true))
 }
