@@ -7,8 +7,8 @@ pipeline {
     stage('Run Terraform build') {
       agent {
         ecs {
-          inheritFrom "${terraformNode}"
-          taskrole "arn:aws:iam::${env.SANDBOX_ACCOUNT}:role/TDRJenkinsAppTaskRoleMgmt"
+          inheritFrom "terraform"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsAppTaskRoleMgmt"
         }
       }
       stages {
