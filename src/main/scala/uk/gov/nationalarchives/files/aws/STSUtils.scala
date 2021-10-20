@@ -9,7 +9,7 @@ object STSUtils {
 
   val sandboxAccountNumber: String = SystemsManagerUtils.managementParameter("/mgmt/sandbox_account")
   val managementAccountNumber: String = stsClient.getCallerIdentity.account()
-  val request: AssumeRoleRequest = AssumeRoleRequest.builder.roleArn(s"arn:aws:iam::$sandboxAccountNumber:role/TDRPerformanceChecksRole").roleSessionName("performance").build()
+  val request: AssumeRoleRequest = AssumeRoleRequest.builder.roleArn(s"arn:aws:iam::$sandboxAccountNumber:role/TDRTerraformRoleSbox").roleSessionName("performance").build()
 
   def assumeRoleCredentials: Credentials = stsClient.assumeRole(request).credentials()
 

@@ -412,3 +412,11 @@ module "ecr_auth_server_repository" {
   common_tags      = local.common_tags
 }
 
+module "ecr_file_format_build_repository" {
+  source           = "./tdr-terraform-modules/ecr"
+  name             = "file-format-build"
+  image_source_url = "https://github.com/nationalarchives/tdr-auth-server/blob/master/Dockerfile"
+  policy_name      = "sandbox_performance_check_policy"
+  policy_variables = { management_account = data.aws_ssm_parameter.management_account.value, sandbox_account=data.aws_caller_identity.current.account_id }
+  common_tags      = local.common_tags
+}

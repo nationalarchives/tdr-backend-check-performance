@@ -9,9 +9,11 @@ import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
 import graphql.codegen.GetFileCheckProgressSummary.{getFileCheckProgressSummary => fcps}
 import graphql.codegen.GetSeries.{getSeries => gs}
 import graphql.codegen.StartUpload.{StartUpload => su}
+import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.types._
 import uk.gov.nationalarchives.files.api.GraphqlUtility.{ConsignmentData, MatchIdInfo}
 import uk.gov.nationalarchives.files.checksum.ChecksumGenerator
+import uk.gov.nationalarchives.files.database.Database.FileTypes
 import uk.gov.nationalarchives.files.keycloak.UserCredentials
 
 import java.io.File
@@ -21,15 +23,19 @@ import java.util.UUID
 
 class GraphqlUtility(userCredentials: UserCredentials) {
 
-  def createConsignment(body: String): Option[ac.Data] = {
+  def createConsignment(body: String): IO[ac.Data] = {
     val client = new UserApiClient[ac.Data, ac.Variables](userCredentials)
-    val seriesId: UUID = getSeries(body).get.getSeries.head.seriesid
-    client.result(ac.document, ac.Variables(AddConsignmentInput(seriesId))).data
+    for {
+      result <- getSeries(body)
+      series <- IO.fromOption(result)(new Exception("No series found"))
+      data <- client.result(ac.document, ac.Variables(AddConsignmentInput(series.getSeries.head.seriesid))).map(_.data)
+      consignment <- IO.fromOption(data)(new Exception("Consignment was not created"))
+    } yield consignment
   }
 
-  def getSeries(body: String): Option[gs.Data] = {
+  def getSeries(body: String): IO[Option[gs.Data]] = {
     val client = new UserApiClient[gs.Data, gs.Variables](userCredentials)
-    client.result(gs.document, gs.Variables(body)).data
+    client.result(gs.document, gs.Variables(body)).map(_.data)
   }
 
   def createTransferAgreement(consignmentId: UUID): Unit = {
@@ -38,7 +44,7 @@ class GraphqlUtility(userCredentials: UserCredentials) {
     client.result(ata.document, ata.Variables(input))
   }
 
-  def addFilesAndMetadata(consignmentId: UUID, parentFolderName: String, matchIdInfo: List[MatchIdInfo]): List[afam.AddFilesAndMetadata] = {
+  def addFilesAndMetadata(consignmentId: UUID, parentFolderName: String, matchIdInfo: List[MatchIdInfo]): IO[List[afam.AddFilesAndMetadata]] = {
     val startUploadClient = new UserApiClient[su.Data, su.Variables](userCredentials)
     startUploadClient.result(su.document, su.Variables(StartUploadInput(consignmentId, parentFolderName)))
     val client: UserApiClient[afam.Data, afam.Variables] = new UserApiClient[afam.Data, afam.Variables](userCredentials)
@@ -53,26 +59,26 @@ class GraphqlUtility(userCredentials: UserCredentials) {
       )
     )
     val input = AddFileAndMetadataInput(consignmentId, metadataInput)
-    client.result(afam.document, afam.Variables(input)).data.get.addFilesAndMetadata
+    client.result(afam.document, afam.Variables(input)).map(_.data.get.addFilesAndMetadata)
   }
 
-  def areFileChecksComplete(consignmentId: UUID): Boolean = {
+  def areFileChecksComplete(consignmentId: UUID): IO[Boolean] = {
     val client = new UserApiClient[fcps.Data, fcps.Variables](userCredentials)
-    val consignmentResult = for {
-      data <- client.result(fcps.document, fcps.Variables(consignmentId)).data
-      consignment <- data.getConsignment
-    } yield consignment
-    consignmentResult.forall(consignment => {
+    for {
+      result <- client.result(fcps.document, fcps.Variables(consignmentId))
+      data <- IO.fromOption(result.data)(new Exception("No data found"))
+      consignment <- IO.fromOption(data.getConsignment)(new Exception("Consignment not found"))
+    } yield {
       val checks = consignment.fileChecks
       checks.checksumProgress.filesProcessed == consignment.totalFiles &&
         checks.ffidProgress.filesProcessed == consignment.totalFiles &&
         checks.antivirusProgress.filesProcessed == consignment.totalFiles
-    })
+    }
   }
 
   def createConsignmentAndFiles(client: GraphqlUtility, filePath: String): IO[ConsignmentData] = {
     for {
-      consignment <- IO.fromOption(client.createConsignment("MOCK1"))(new Exception("No consignment"))
+      consignment <- client.createConsignment("MOCK1")
       id <- IO.fromOption(consignment.addConsignment.consignmentid)(new Exception("No consignment ID"))
       _ <- IO(client.createTransferAgreement(id))
       matchIdInfo <-
@@ -80,8 +86,19 @@ class GraphqlUtility(userCredentials: UserCredentials) {
           .zipWithIndex
           .map(zippedPath => ChecksumGenerator.generate(s"$filePath/${zippedPath._1}", zippedPath._2))
           .toList.sequence
-      files <- IO(client.addFilesAndMetadata(id, filePath.split("/").head, matchIdInfo))
+      files <- client.addFilesAndMetadata(id, filePath.split("/").head, matchIdInfo)
     } yield ConsignmentData(id, matchIdInfo, files)
+  }
+
+  def getFileTypes(consignmentId: UUID) = {
+    val client = new UserApiClient[gce.Data, gce.Variables](userCredentials)
+    for {
+      exportResult <- client.result(gce.document, gce.Variables(consignmentId))
+      exportData <- IO.fromOption(exportResult.data)(new Exception("No export data found"))
+      exportConsignment <- IO.fromOption(exportData.getConsignment)(new Exception("No export data found"))
+    } yield exportConsignment.files.map(file =>
+      FileTypes(file.fileId, file.ffidMetadata.map(_.matches.map(_.puid.getOrElse("")).mkString(",")).getOrElse(""))
+    )
   }
 }
 

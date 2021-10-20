@@ -7,8 +7,9 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor.Aux
 import uk.gov.nationalarchives.files.Main.FileCheckResults
 import uk.gov.nationalarchives.files.api.GraphqlUtility.ConsignmentData
-import uk.gov.nationalarchives.files.database.Database.{AggregateResult, AggregateResults}
+import uk.gov.nationalarchives.files.database.Database.{AggregateResult, AggregateResults, FileTypes}
 
+import java.util.UUID
 import scala.math.BigDecimal.RoundingMode
 
 class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
@@ -22,7 +23,8 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
       consignmentId TEXT NOT NULL,
       fileId  TEXT NOT NULL,
       filePath TEXT NOT NULL,
-      fileSize NUMERIC
+      fileSize NUMERIC,
+      fileType TEXT
     )
   """.update.run
 
@@ -53,13 +55,20 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
     }).sequence
   }
 
+  def updateFileFormat(fileTypeInfo: List[FileTypes]): IO[List[Int]] =
+    fileTypeInfo.map(info => {
+      val fileType = info.fileType
+      val fileId = info.fileId.toString
+      sql"update files set fileType = $fileType where fileId = $fileId;".update.run.transact(xa)
+    }).sequence
+
   def getAggregateResults() = {
     fileCheckNames.map(fileCheck => {
       val checkName = fileCheck.split("_").map(_.capitalize).mkString(" ")
-      Fragment(s"select f.filePath, f.fileSize, avg(timeTaken), count(*) from files f JOIN $fileCheck c on c.fileId = f.fileId group by 1,2", Nil).query[(String, Long, Double, Long)].to[List].transact(xa).map(results => {
+      Fragment(s"select f.filePath, f.fileSize, f.fileType, avg(timeTaken), count(*) from files f JOIN $fileCheck c on c.fileId = f.fileId group by 1,2,3", Nil).query[(String, Long, String, Double, Long)].to[List].transact(xa).map(results => {
         val resultList = results.map(res => {
-          val (filePath, fileSize, timeTaken, count) = res
-          AggregateResult(filePath, fileSize, BigDecimal(timeTaken).setScale(3, RoundingMode.HALF_UP).toDouble, count)
+          val (filePath, fileSize, fileType, timeTaken, count) = res
+          AggregateResult(filePath, fileSize, BigDecimal(timeTaken).setScale(3, RoundingMode.HALF_UP).toDouble, count, fileType)
         })
         AggregateResults(checkName, resultList)
       })
@@ -69,7 +78,8 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
 
 object Database {
   case class AggregateResults(checkName: String, results: List[AggregateResult])
-  case class AggregateResult(filePath: String, fileSize: Long, timeTaken: Double, numberOfExecutions: Long)
+  case class AggregateResult(filePath: String, fileSize: Long, timeTaken: Double, numberOfExecutions: Long, fileType: String)
+  case class FileTypes(fileId: UUID, fileType: String)
   def apply(fileCheckNames: List[String]) = new Database(
     Transactor.fromDriverManager[IO](
       "org.sqlite.JDBC", "jdbc:sqlite:performance.db", "", ""

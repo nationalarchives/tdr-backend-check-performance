@@ -11,18 +11,16 @@ import uk.gov.nationalarchives.files.aws.LambdaUtils._
 import uk.gov.nationalarchives.files.aws.LoadBalancerUtils._
 import uk.gov.nationalarchives.files.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Upload}
 import uk.gov.nationalarchives.files.database.Database
-import uk.gov.nationalarchives.files.docker.Docker._
 import uk.gov.nationalarchives.files.keycloak.{KeycloakClient, UserCredentials}
 import uk.gov.nationalarchives.files.retry.Retry.retry
-import uk.gov.nationalarchives.files.terraform.Terraform
 import uk.gov.nationalarchives.files.aws.ECSUtils._
 import uk.gov.nationalarchives.files.csv.CsvReport
 import uk.gov.nationalarchives.files.html.HtmlReport
 
 import java.nio.file.Path
 import java.util.UUID
-import scala.annotation.tailrec
 import scala.util.Random
+import scala.concurrent.duration._
 
 object Main extends CommandIOApp("performance-checks", "Carry out backend check performance checks") {
   def setupResources(createResources: Boolean): IO[Unit] = {
@@ -38,9 +36,6 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     )
     if(createResources) {
       for {
-        _ <- updateDockerImages("consignment-api", managementAccountNumber, sandboxAccountNumber)
-        _ <- updateDockerImages("auth-server", managementAccountNumber, sandboxAccountNumber)
-        _ <- updateDockerImages("file-format-build", managementAccountNumber, sandboxAccountNumber)
         _ <- updateLambdas(lambdas)
         _ <- retry(invokeLambdas, List("create-db-users", "create-keycloak-db-user", "database-migrations"))
         _ <- runFileFormatTask()
@@ -57,34 +52,37 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         val userName: String = randomString
         val password: String = randomString
         val userCredentials: UserCredentials = UserCredentials(userName, password)
-        KeycloakClient.createUser(userCredentials)
-        val graphqlClient: GraphqlUtility = GraphqlUtility(userCredentials)
-
-        @tailrec
-        def checkFileProgress(consignmentId: UUID): Unit = {
-          if (graphqlClient.areFileChecksComplete(consignmentId)) {
-            //There can be a slight delay getting the logs into Cloudwatch so wait for 30s
-            Thread.sleep(30000)
-            ()
-          } else {
-            Thread.sleep(5000)
-            checkFileProgress(consignmentId)
-          }
-        }
+//        KeycloakClient.createUser(userCredentials)
+//        val graphqlClient: GraphqlUtility = GraphqlUtility(userCredentials)
+//
+//        def checkFileProgress(consignmentId: UUID): IO[Unit] = {
+//          for {
+//            checksComplete <- graphqlClient.areFileChecksComplete(consignmentId)
+//            _ <- if(checksComplete) {
+//              IO.sleep(30.seconds) >> IO.unit
+//            } else {
+//              IO.sleep(5.seconds) >> checkFileProgress(consignmentId)
+//            }
+//          } yield ()
+//        }
 
         val checkNames = List("download-files", "checksum", "yara-av", "file-format", "api-update")
         val database = Database(checkNames)
+
         for {
-          _ <- database.createTables()
-          _ <- LogUtils.deleteExistingLogStreams(checkNames)
-          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
-          _ <- database.insertFiles(consignment)
-          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
-          _ <- IO(checkFileProgress(consignment.consignmentId))
-          fileCheckResults <- LogUtils.getResults(checkNames)
-          _ <- database.insertResults(fileCheckResults)
+//          _ <- database.createTables()
+//          _ <- LogUtils.deleteExistingLogStreams(checkNames)
+//          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
+//          _ <- database.insertFiles(consignment)
+//          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
+//          _ <- IO(checkFileProgress(consignment.consignmentId))
+//          fileCheckResults <- LogUtils.getResults(checkNames)
+//          fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
+//          _ <- database.insertResults(fileCheckResults)
           aggregateResults <- database.getAggregateResults()
-          _ <- HtmlReport.createReport(aggregateResults)
+          reportGenerator = HtmlReport(aggregateResults)
+//          _ <- database.updateFileFormat(fileTypes)
+          _ <- reportGenerator.createReport()
           _ <- CsvReport.csvReport(aggregateResults)
         } yield ()
       }).head
@@ -98,19 +96,6 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
       for {
         _ <- LoadBalancerUtils.removeDeletionProtection(List("consignmentapi", "keycloak"))
         _ <- RdsUtils.removeDeletionProtection()
-        _ <- retry(Terraform.destroy)
-      } yield ()
-    } else {
-      IO.unit
-    }
-  }
-
-  def runTerraform(runTerraform: Boolean): IO[Unit] = {
-    if(runTerraform) {
-      for {
-        _ <- Terraform.init()
-        _ <- Terraform.selectWorkspace()
-        _ <- retry(Terraform.apply)
       } yield ()
     } else {
       IO.unit
@@ -119,9 +104,8 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
 
   override def main: Opts[IO[ExitCode]] = {
     performanceChecks map {
-      case PerformanceChecks(files, create, results, destroy, terraform) =>
+      case PerformanceChecks(files, create, results, destroy) =>
         for {
-          _ <- runTerraform(terraform)
           _ <- setupResources(create)
           _ <- createFileCheckResults(files, results)
           _ <- destroyResources(destroy)

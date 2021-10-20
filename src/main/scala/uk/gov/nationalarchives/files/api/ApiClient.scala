@@ -1,16 +1,15 @@
 package uk.gov.nationalarchives.files.api
 
+import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.typesafe.config.{Config, ConfigFactory}
-import uk.gov.nationalarchives.files.keycloak.{KeycloakUtility, UserCredentials}
 import io.circe.{Decoder, Encoder}
 import sangria.ast.Document
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
+import uk.gov.nationalarchives.files.keycloak.{KeycloakUtility, UserCredentials}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 import scala.language.postfixOps
 
 class UserApiClient[Data, Variables](userCredentials: UserCredentials)(implicit val decoder: Decoder[Data], val encoder: Encoder[Variables]) {
@@ -25,7 +24,7 @@ class UserApiClient[Data, Variables](userCredentials: UserCredentials)(implicit 
     KeycloakUtility.bearerAccessToken(body)
   }
 
-  def result(document: Document, variables: Variables): GraphQlResponse[Data] = {
+  def result(document: Document, variables: Variables): IO[GraphQlResponse[Data]] = {
     ApiClient.sendApiRequest(document, variables, userToken)
   }
 }
@@ -42,7 +41,7 @@ class BackendApiClient[Data, Variables](implicit val decoder: Decoder[Data], val
     ))
   }
 
-  def sendRequest(document: Document, variables: Variables): GraphQlResponse[Data] = {
+  def sendRequest(document: Document, variables: Variables): IO[GraphQlResponse[Data]] = {
     ApiClient.sendApiRequest(document, variables, backendChecksToken)
   }
 }
@@ -51,8 +50,8 @@ object ApiClient {
   implicit private val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
   private val configuration: Config = ConfigFactory.load
 
-  def sendApiRequest[Data, Variables](document: Document, variables: Variables, token: BearerAccessToken)(implicit decoder: Decoder[Data], encoder: Encoder[Variables]): GraphQlResponse[Data] = {
+  def sendApiRequest[Data, Variables](document: Document, variables: Variables, token: BearerAccessToken)(implicit decoder: Decoder[Data], encoder: Encoder[Variables]): IO[GraphQlResponse[Data]] = {
     val client = new GraphQLClient[Data, Variables](configuration.getString("tdr.api.url"))
-    Await.result(client.getResult(token, document, Some(variables)), 10 seconds)
+    IO.fromFuture(IO(client.getResult(token, document, Some(variables))))
   }
 }

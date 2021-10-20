@@ -70,7 +70,7 @@ lazy val root = (project in file("."))
       logback
     ),
     ghreleaseRepoOrg := "nationalarchives",
-    ghreleaseAssets := Seq(file(s"${(target in Universal).value}/${(packageName in Universal).value}.tgz")),
+    ghreleaseAssets := Seq(file(s"${(Universal / target).value}/${(Universal / packageName).value}.tgz")),
     releaseProcess := Seq[ReleaseStep](
       inquireVersions,
       setReleaseVersion,
@@ -78,10 +78,11 @@ lazy val root = (project in file("."))
       commitReleaseVersion,
       tagRelease,
       pushChanges,
-      releaseStepTask(packageZipTarball in Universal),
+      releaseStepTask(Universal / packageZipTarball),
       releaseStepInputTask(githubRelease),
       setNextVersion,
       commitNextVersion,
       pushChanges
     )
-  ).enablePlugins(JavaAppPackaging, UniversalPlugin)
+  )
+  .enablePlugins(JavaAppPackaging, UniversalPlugin)
