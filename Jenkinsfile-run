@@ -8,7 +8,7 @@ pipeline {
       agent {
         ecs {
           inheritFrom "terraform"
-          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsAppTaskRoleMgmt"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
         }
       }
       environment {

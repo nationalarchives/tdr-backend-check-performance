@@ -1,7 +1,7 @@
 provider "aws" {
   region = "eu-west-2"
   assume_role {
-    role_arn     = "arn:aws:iam::${var.tdr_account_number}:role/TDRPerformanceChecksRole"
+    role_arn     = "arn:aws:iam::${var.tdr_account_number}:role/TDRTerraformRoleSbox"
     session_name = "terraform"
   }
 }
