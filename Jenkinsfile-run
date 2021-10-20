@@ -11,8 +11,12 @@ pipeline {
           taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsAppTaskRoleMgmt"
         }
       }
+      environment {
+        TF_VAR_tdr_account_number = env.SANDBOX_ACCOUNT
+        TF_CLI_ARGS = "-no-color"
+      }
       stages {
-        stage('Set up Terraform workspace') { 
+        stage('Set up Terraform workspace') {
           steps {
             dir("terraform") {
               sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
