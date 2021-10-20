@@ -12,13 +12,17 @@ pipeline {
         }
       }
       stages {
-        stage('Set up Terraform workspace') {
+        stage('Set up Terraform workspace') { 
           steps {
             dir("terraform") {
               sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
               sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
+              sh "terraform workspace new sbox || true"
+              sh "terraform workspace select sbox"
+              retry(5) {
+                sh "terraform apply --auto-approve"
+              }
             }
-            sh "checks -t"
           }
         }
       }
@@ -26,6 +30,11 @@ pipeline {
     stage('Run report') {
       steps {
         sh "checks -cr project"
+        publishHTML (target: [
+            keepAll: true,
+            reportFiles: 'output.html',
+            reportName: "Performance Checks Report"
+        ])
       }
     }
   }
