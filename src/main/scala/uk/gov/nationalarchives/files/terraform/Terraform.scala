@@ -9,15 +9,18 @@ import scala.sys.process._
 
 object Terraform {
   val terraformCommand: String = ConfigFactory.load().getString("terraform.command")
-
-  private def command(terraformArg: String) = {
+  def envCredentials: List[(String, String)] = {
     val credentials = assumeRoleCredentials
-    val envCredentials = List(
+    List(
       "AWS_ACCESS_KEY_ID" -> credentials.accessKeyId,
       "AWS_SECRET_ACCESS_KEY" -> credentials.secretAccessKey,
       "AWS_SESSION_TOKEN" -> credentials.sessionToken,
       "TF_CLI_ARGS" -> "-no-color"
     )
+  }
+
+  private def command(terraformArg: String) = {
+
     val file = new File("terraform")
     val process = Process(s"$terraformCommand $terraformArg --auto-approve", file, envCredentials: _*).run(ProcessLogger(s =>
       println(s)
@@ -39,7 +42,7 @@ object Terraform {
   }
 
   def init(): IO[Int] = IO(Seq(terraformCommand, "init").!)
-  def selectWorkspace(): IO[Int] = IO(Seq(terraformCommand, "workspace", "select", "sbox").!)
+  def selectWorkspace(): IO[Int] = IO(Process(Seq(terraformCommand, "workspace", "select", "sbox"), None, envCredentials: _*).!)
 
 
   def apply(): IO[Int] = command("apply")
