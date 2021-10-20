@@ -12,7 +12,7 @@ pipeline {
         }
       }
       environment {
-        TF_VAR_tdr_account_number = env.SANDBOX_ACCOUNT
+        TF_VAR_tdr_account_number = "${env.SANDBOX_ACCOUNT}"
         TF_CLI_ARGS = "-no-color"
       }
       stages {
