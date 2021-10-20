@@ -14,12 +14,9 @@ pipeline {
       stages {
         stage('Set up Terraform workspace') {
           steps {
-            dir("terraform") {
-              echo 'Initializing Terraform...'
-              sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
-              sh "git clone https://github.com/nationalarchives/tdr-terraform-environments.git"
-              sh "checks -t"
-            }
+            sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
+            sh "git clone https://github.com/nationalarchives/tdr-terraform-environments.git"
+            sh "checks -t"
           }
         }
       }
