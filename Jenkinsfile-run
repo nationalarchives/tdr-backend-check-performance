@@ -1,6 +1,17 @@
+def copyDockerImages(String imageName) {
+  sh "aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${env.MANAGEMENT_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com"
+  sh "docker pull ${env.MANAGEMENT_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/${imageName}:intg"
+  sh "docker tag ${env.MANAGEMENT_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/${imageName}:intg ${env.SANDBOX_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/${imageName}:sbox"
+  sh "aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${env.SANDBOX_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com"
+  sh "docker push ${env.SANDBOX_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/${imageName}:sbox"
+}
+
 pipeline {
   agent {
     label "built-in"
+  }
+  parameters {
+    booleanParam(name: 'RUN_TERRAFORM', defaultValue: false)
   }
 
   stages {
@@ -10,6 +21,10 @@ pipeline {
           inheritFrom "terraform"
           taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
         }
+      }
+      when {
+        beforeAgent true
+        expression { params.RUN_TERRAFORM }
       }
       environment {
         TF_VAR_tdr_account_number = "${env.SANDBOX_ACCOUNT}"
@@ -32,14 +47,16 @@ pipeline {
         }
       }
     }
-    stage('Run report') {
+    stage('Build docker images in sandbox environment') {
       steps {
-        sh "checks -cr project"
-        publishHTML (target: [
-            keepAll: true,
-            reportFiles: 'output.html',
-            reportName: "Performance Checks Report"
-        ])
+        copyDockerImages("consignment-api")
+        copyDockerImages("auth-server")
+        copyDockerImages("file-format-build")
+//        publishHTML (target: [
+//            keepAll: true,
+//            reportFiles: 'output.html',
+//            reportName: "Performance Checks Report"
+//        ])
       }
     }
   }
