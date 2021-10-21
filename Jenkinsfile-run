@@ -58,14 +58,15 @@ pipeline {
       agent {
         ecs {
           inheritFrom "transfer-frontend"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
         }
       }
       steps {
         script {
           if(params.CREATE_RESOURCES) {
-            sh "sbt run -cr project"
+            sh "sbt -no-colors 'run -cr project'"
           } else {
-            sh "sbt run -r project"
+            sh "sbt -no-colors 'run -r project'"
           }
         }
         publishHTML (target: [
