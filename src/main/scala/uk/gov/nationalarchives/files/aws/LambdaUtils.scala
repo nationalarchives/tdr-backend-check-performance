@@ -41,7 +41,7 @@ object LambdaUtils {
     lambdaNames.map(name => {
       lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$name-sbox").build()).toIO.flatMap(response => {
         if(response.statusCode() == 200) {
-          IO(response)
+          IO.println(response) >> IO(response)
         } else {
           IO.raiseError(new Exception(""))
         }
