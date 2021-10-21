@@ -55,6 +55,11 @@ pipeline {
       }
     }
     stage('Create resources and run test') {
+      agent {
+        ecs {
+          inheritFrom "transfer-frontend"
+        }
+      }
       steps {
         script {
           if(params.CREATE_RESOURCES) {
