@@ -7,8 +7,8 @@ import software.amazon.awssdk.services.sts.model.{AssumeRoleRequest, Credentials
 object STSUtils {
   lazy val stsClient: StsClient = StsClient.builder.build()
 
-  val sandboxAccountNumber: String = SystemsManagerUtils.managementParameter("/mgmt/sandbox_account")
-  val managementAccountNumber: String = stsClient.getCallerIdentity.account()
+  val sandboxAccountNumber: String = StsClient.builder.credentialsProvider(assumeRoleProvider).build.getCallerIdentity.account
+  val managementAccountNumber: String = stsClient.getCallerIdentity.account
   val request: AssumeRoleRequest = AssumeRoleRequest.builder.roleArn(s"arn:aws:iam::$sandboxAccountNumber:role/TDRTerraformRoleSbox").roleSessionName("performance").build()
 
   def assumeRoleCredentials: Credentials = stsClient.assumeRole(request).credentials()
