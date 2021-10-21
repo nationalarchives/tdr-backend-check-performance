@@ -56,10 +56,12 @@ pipeline {
     }
     stage('Create resources and run test') {
       steps {
-        if(params.CREATE_RESOURCES) {
-          sh "sbt run -cr project"
-        } else {
-          sh "sbt run -r project"
+        script {
+          if(params.CREATE_RESOURCES) {
+            sh "sbt run -cr project"
+          } else {
+            sh "sbt run -r project"
+          }
         }
         publishHTML (target: [
             keepAll: true,
