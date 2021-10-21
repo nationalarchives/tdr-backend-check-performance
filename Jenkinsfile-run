@@ -11,7 +11,7 @@ pipeline {
     label "built-in"
   }
   parameters {
-    booleanParam(name: 'RUN_TERRAFORM', defaultValue: false)
+    booleanParam(name: 'CREATE_RESOURCES', defaultValue: false)
   }
 
   stages {
@@ -24,25 +24,21 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { params.RUN_TERRAFORM }
+        expression { false }
       }
       environment {
         TF_VAR_tdr_account_number = "${env.SANDBOX_ACCOUNT}"
         TF_CLI_ARGS = "-no-color"
       }
-      stages {
-        stage('Set up Terraform workspace') {
-          steps {
-            dir("terraform") {
-              sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
-              sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
-              sh "terraform init"
-              sh "terraform workspace new sbox || true"
-              sh "terraform workspace select sbox"
-              retry(5) {
-                sh "terraform apply --auto-approve"
-              }
-            }
+      steps {
+        dir("terraform") {
+          sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
+          sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
+          sh "terraform init"
+          sh "terraform workspace new sbox || true"
+          sh "terraform workspace select sbox"
+          retry(5) {
+            sh "terraform apply --auto-approve"
           }
         }
       }
@@ -52,11 +48,20 @@ pipeline {
         copyDockerImages("consignment-api")
         copyDockerImages("auth-server")
         copyDockerImages("file-format-build")
-//        publishHTML (target: [
-//            keepAll: true,
-//            reportFiles: 'output.html',
-//            reportName: "Performance Checks Report"
-//        ])
+      }
+    }
+    stage('Create resources and run test') {
+      steps {
+        if(params.CREATE_RESOURCES) {
+          sh "sbt run -cr project"
+        } else {
+          sh "sbt run -r project"
+        }
+        publishHTML (target: [
+            keepAll: true,
+            reportFiles: 'output.html',
+            reportName: "Performance Checks Report"
+        ])
       }
     }
   }

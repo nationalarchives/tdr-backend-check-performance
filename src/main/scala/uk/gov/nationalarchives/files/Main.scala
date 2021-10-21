@@ -52,36 +52,36 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         val userName: String = randomString
         val password: String = randomString
         val userCredentials: UserCredentials = UserCredentials(userName, password)
-//        KeycloakClient.createUser(userCredentials)
-//        val graphqlClient: GraphqlUtility = GraphqlUtility(userCredentials)
-//
-//        def checkFileProgress(consignmentId: UUID): IO[Unit] = {
-//          for {
-//            checksComplete <- graphqlClient.areFileChecksComplete(consignmentId)
-//            _ <- if(checksComplete) {
-//              IO.sleep(30.seconds) >> IO.unit
-//            } else {
-//              IO.sleep(5.seconds) >> checkFileProgress(consignmentId)
-//            }
-//          } yield ()
-//        }
+        KeycloakClient.createUser(userCredentials)
+        val graphqlClient: GraphqlUtility = GraphqlUtility(userCredentials)
+
+        def checkFileProgress(consignmentId: UUID): IO[Unit] = {
+          for {
+            checksComplete <- graphqlClient.areFileChecksComplete(consignmentId)
+            _ <- if(checksComplete) {
+              IO.sleep(30.seconds) >> IO.unit
+            } else {
+              IO.sleep(5.seconds) >> checkFileProgress(consignmentId)
+            }
+          } yield ()
+        }
 
         val checkNames = List("download-files", "checksum", "yara-av", "file-format", "api-update")
         val database = Database(checkNames)
 
         for {
-//          _ <- database.createTables()
-//          _ <- LogUtils.deleteExistingLogStreams(checkNames)
-//          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
-//          _ <- database.insertFiles(consignment)
-//          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
-//          _ <- IO(checkFileProgress(consignment.consignmentId))
-//          fileCheckResults <- LogUtils.getResults(checkNames)
-//          fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
-//          _ <- database.insertResults(fileCheckResults)
+          _ <- database.createTables()
+          _ <- LogUtils.deleteExistingLogStreams(checkNames)
+          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
+          _ <- database.insertFiles(consignment)
+          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
+          _ <- IO(checkFileProgress(consignment.consignmentId))
+          fileCheckResults <- LogUtils.getResults(checkNames)
+          fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
+          _ <- database.insertResults(fileCheckResults)
           aggregateResults <- database.getAggregateResults()
           reportGenerator = HtmlReport(aggregateResults)
-//          _ <- database.updateFileFormat(fileTypes)
+          _ <- database.updateFileFormat(fileTypes)
           _ <- reportGenerator.createReport()
           _ <- CsvReport.csvReport(aggregateResults)
         } yield ()

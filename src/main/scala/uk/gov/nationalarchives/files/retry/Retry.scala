@@ -4,7 +4,6 @@ import cats.effect.IO
 import retry.RetryDetails._
 import retry.{RetryDetails, RetryPolicy, retryingOnAllErrors}
 import retry.RetryPolicies.{exponentialBackoff, limitRetries}
-import uk.gov.nationalarchives.files.terraform.Terraform
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
