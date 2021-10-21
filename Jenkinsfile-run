@@ -44,6 +44,10 @@ pipeline {
       }
     }
     stage('Build docker images in sandbox environment') {
+      when {
+        beforeAgent true
+        expression { false }
+      }
       steps {
         copyDockerImages("consignment-api")
         copyDockerImages("auth-server")
