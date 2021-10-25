@@ -24,7 +24,7 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { false }
+        expression { params.CREATE_RESOURCES }
       }
       environment {
         TF_VAR_tdr_account_number = "${env.SANDBOX_ACCOUNT}"
@@ -46,7 +46,7 @@ pipeline {
     stage('Build docker images in sandbox environment') {
       when {
         beforeAgent true
-        expression { false }
+        expression { params.CREATE_RESOURCES }
       }
       steps {
         copyDockerImages("consignment-api")
