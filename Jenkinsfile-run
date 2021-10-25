@@ -76,7 +76,6 @@ pipeline {
             reportFiles: 'output.html',
             reportName: "Performance Checks Report"
         ])
-        archiveArtifacts artifacts: '*.csv'
       }
     }
   }
