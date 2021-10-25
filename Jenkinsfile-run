@@ -72,7 +72,7 @@ pipeline {
         }
         publishHTML (target: [
             keepAll: true,
-            reportDir: ".",
+            reportDir: "report",
             reportFiles: 'output.html',
             reportName: "Performance Checks Report"
         ])

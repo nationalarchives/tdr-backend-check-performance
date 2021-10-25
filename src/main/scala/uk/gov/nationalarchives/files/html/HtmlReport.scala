@@ -9,6 +9,8 @@ import java.nio.file.{Files, Paths}
 import scala.io.Source
 import shapeless._
 
+import java.io.File
+
 class HtmlReport(aggregateResults: List[AggregateResults]) {
   case class TimeTakenByCheck(check: String, timeTaken: Double)
 
@@ -19,6 +21,7 @@ class HtmlReport(aggregateResults: List[AggregateResults]) {
     def toJSArray(): String = list match {
       case stringList(sl) => s"[${sl.map(l => s"'$l'").mkString(",")}]"
       case doubleList(il) =>  s"[${il.mkString(",")}]"
+      case _ => ""
     }
   }
 
@@ -51,7 +54,7 @@ class HtmlReport(aggregateResults: List[AggregateResults]) {
       head(
         link(rel := "stylesheet", href := "https://jenkins.tdr-management.nationalarchives.gov.uk/userContent/bootstrap.min.css"),
         script(src := "https://jenkins.tdr-management.nationalarchives.gov.uk/userContent/charts.min.js"),
-        script(finalJs),
+        script(src := "reports.js"),
         body(
           div(`class` := "container",
             for (result <- aggregateResults) yield {
@@ -92,7 +95,9 @@ class HtmlReport(aggregateResults: List[AggregateResults]) {
         )
       )
     ).render
-    Files.write(Paths.get("output.html"), report.getBytes(StandardCharsets.UTF_8))
+    new File("report").mkdir()
+    Files.write(Paths.get("report/reports.js"), finalJs.getBytes(StandardCharsets.UTF_8))
+    Files.write(Paths.get("report/output.html"), report.getBytes(StandardCharsets.UTF_8))
   }
 }
 object HtmlReport {
