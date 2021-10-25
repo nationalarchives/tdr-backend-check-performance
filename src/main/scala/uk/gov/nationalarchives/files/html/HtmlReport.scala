@@ -49,8 +49,8 @@ class HtmlReport(aggregateResults: List[AggregateResults]) {
 
     val report: String = html(
       head(
-        link(rel := "stylesheet", href := "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"),
-        script(src := "https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"),
+        link(rel := "stylesheet", href := "https://jenkins.tdr-management.nationalarchives.gov.uk/userContent/bootstrap.min.css"),
+        script(src := "https://jenkins.tdr-management.nationalarchives.gov.uk/userContent/charts.min.js"),
         script(finalJs),
         body(
           div(`class` := "container",
