@@ -66,7 +66,7 @@ object LambdaUtils {
           body <- IO.fromEither(res.body)
           fileResponse <- backend.send(download(uri"${body.assets.head.browser_download_url}"))
           file <- IO.fromEither(fileResponse.body.left.map(err => new Exception(err)))
-          _ <- IO(S3Upload.uploadLambdaFile(file.getPath))
+          _ <- IO(S3Utils.uploadLambdaFile(file.getPath))
           lambdaResponse <- updateFunctionCode(s"tdr-$lambdaName-sbox", file.getPath)
           _ <- IO.println(lambdaResponse)
           _ <- IO.sleep(20.seconds) //Wait before invoking lambdas as this can fail

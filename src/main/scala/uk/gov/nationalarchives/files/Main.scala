@@ -6,21 +6,20 @@ import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import uk.gov.nationalarchives.files.api.GraphqlUtility
 import uk.gov.nationalarchives.files.arguments.Args.{PerformanceChecks, performanceChecks}
-import uk.gov.nationalarchives.files.aws.STSUtils.{managementAccountNumber, sandboxAccountNumber}
+import uk.gov.nationalarchives.files.aws.ECSUtils._
 import uk.gov.nationalarchives.files.aws.LambdaUtils._
 import uk.gov.nationalarchives.files.aws.LoadBalancerUtils._
-import uk.gov.nationalarchives.files.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Upload}
+import uk.gov.nationalarchives.files.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Utils}
 import uk.gov.nationalarchives.files.database.Database
+import uk.gov.nationalarchives.files.html.HtmlReport
+import uk.gov.nationalarchives.files.csv.CsvReport
 import uk.gov.nationalarchives.files.keycloak.{KeycloakClient, UserCredentials}
 import uk.gov.nationalarchives.files.retry.Retry.retry
-import uk.gov.nationalarchives.files.aws.ECSUtils._
-import uk.gov.nationalarchives.files.csv.CsvReport
-import uk.gov.nationalarchives.files.html.HtmlReport
 
 import java.nio.file.Path
 import java.util.UUID
-import scala.util.Random
 import scala.concurrent.duration._
+import scala.util.Random
 
 object Main extends CommandIOApp("performance-checks", "Carry out backend check performance checks") {
   def setupResources(createResources: Boolean): IO[Unit] = {
@@ -72,9 +71,10 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         for {
           _ <- database.createTables()
           _ <- LogUtils.deleteExistingLogStreams(checkNames)
+          _ <- S3Utils.downloadFiles(filePath)
           consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
           _ <- database.insertFiles(consignment)
-          _ <- IO(S3Upload.uploadConsignmentFiles(UUID.randomUUID(), consignment))
+          _ <- S3Utils.uploadConsignmentFiles(UUID.randomUUID(), consignment)
           _ <- IO(checkFileProgress(consignment.consignmentId))
           fileCheckResults <- LogUtils.getResults(checkNames)
           fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
