@@ -39,7 +39,7 @@ object LambdaUtils {
 
   def invokeLambda(lambdaName: String): IO[InvokeResponse] = {
     lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$lambdaName-sbox").build()).toIO.flatMap(response => {
-      if(response.statusCode() == 200) {
+      if(response.statusCode() == 200 && response.functionError() == null) {
         IO.println(response) >> IO(response)
       } else {
         IO.raiseError(new Exception(""))
