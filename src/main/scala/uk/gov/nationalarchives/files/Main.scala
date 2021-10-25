@@ -78,7 +78,7 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
           consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
           _ <- database.insertFiles(consignment)
           _ <- S3Utils.uploadConsignmentFiles(UUID.randomUUID(), consignment)
-          _ <- IO(checkFileProgress(consignment.consignmentId))
+          _ <- checkFileProgress(consignment.consignmentId)
           fileCheckResults <- LogUtils.getResults(checkNames)
           fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
           _ <- database.insertResults(fileCheckResults)

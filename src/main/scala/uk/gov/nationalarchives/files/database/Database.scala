@@ -20,16 +20,16 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
     val createFiles =
       sql"""
     CREATE TABLE files (
-      consignmentId TEXT NOT NULL,
-      fileId  TEXT NOT NULL,
-      filePath TEXT NOT NULL,
+      consignmentId TEXT,
+      fileId  TEXT,
+      filePath TEXT,
       fileSize NUMERIC,
       fileType TEXT
     )
   """.update.run
 
 
-    def createTimeTable(fileCheck: String) = Fragment(s"CREATE TABLE $fileCheck", Nil) ++ fr" (fileId  TEXT NOT NULL, timeTaken INTEGER)"
+    def createTimeTable(fileCheck: String) = Fragment(s"CREATE TABLE $fileCheck", Nil) ++ fr" (fileId  TEXT, timeTaken INTEGER)"
     def deleteTimeTable(fileCheck: String) = Fragment(s"DROP TABLE IF EXISTS $fileCheck", Nil)
     fileCheckNames.map(name => for {
       _ <- (dropFiles, createFiles).mapN(_ + _).transact(xa)

@@ -1,7 +1,9 @@
 package uk.gov.nationalarchives.files.keycloak
+import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.typesafe.config.ConfigFactory
 import io.circe.generic.auto._
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.circe.asJson
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend, basicRequest, _}
 
@@ -10,24 +12,20 @@ import scala.language.postfixOps
 object KeycloakUtility {
   val configuration = ConfigFactory.load
 
-  def bearerAccessToken(requestBody: Map[String, String]): BearerAccessToken = {
+  def bearerAccessToken(requestBody: Map[String, String]): IO[BearerAccessToken] = {
+    AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
+      val authUrl = configuration.getString("tdr.auth.url")
 
-    implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+      val request = basicRequest
+        .body(requestBody)
+        .post(uri"$authUrl/auth/realms/tdr/protocol/openid-connect/token")
+        .response(asJson[AuthResponse])
 
-    val authUrl = configuration.getString("tdr.auth.url")
-
-    val response = basicRequest
-      .body(requestBody)
-      .post(uri"$authUrl/auth/realms/tdr/protocol/openid-connect/token")
-      .response(asJson[AuthResponse])
-      .send()
-
-    val authResponse = response.body match {
-      case Right(body) =>
-        body
-      case Left(e) => throw e
+      for {
+        response <- request.send(backend)
+        body <- IO.fromEither(response.body)
+      } yield new BearerAccessToken(body.access_token)
     }
-    new BearerAccessToken(authResponse.access_token)
   }
 }
 

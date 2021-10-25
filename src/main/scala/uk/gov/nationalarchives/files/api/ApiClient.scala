@@ -20,12 +20,15 @@ class UserApiClient[Data, Variables](userCredentials: UserCredentials)(implicit 
     "client_id" -> "tdr-fe"
   )
 
-  private def userToken: BearerAccessToken = {
+  private def userToken: IO[BearerAccessToken] = {
     KeycloakUtility.bearerAccessToken(body)
   }
 
   def result(document: Document, variables: Variables): IO[GraphQlResponse[Data]] = {
-    ApiClient.sendApiRequest(document, variables, userToken)
+    for {
+      userToken <- userToken
+      response <- ApiClient.sendApiRequest(document, variables, userToken)
+    } yield response
   }
 }
 
@@ -33,7 +36,7 @@ class BackendApiClient[Data, Variables](implicit val decoder: Decoder[Data], val
   val configuration: Config = ConfigFactory.load
   private val backendChecksSecret: String = configuration.getString("keycloak.backendchecks.secret")
 
-  private def backendChecksToken: BearerAccessToken = {
+  private def backendChecksToken: IO[BearerAccessToken] = {
     KeycloakUtility.bearerAccessToken(Map(
       "grant_type" -> "client_credentials",
       "client_id" -> "tdr-backend-checks",
@@ -41,9 +44,10 @@ class BackendApiClient[Data, Variables](implicit val decoder: Decoder[Data], val
     ))
   }
 
-  def sendRequest(document: Document, variables: Variables): IO[GraphQlResponse[Data]] = {
-    ApiClient.sendApiRequest(document, variables, backendChecksToken)
-  }
+  def sendRequest(document: Document, variables: Variables): IO[GraphQlResponse[Data]] = for {
+      backendChecksToken <- backendChecksToken
+      response <- ApiClient.sendApiRequest(document, variables, backendChecksToken)
+    } yield response
 }
 
 object ApiClient {
