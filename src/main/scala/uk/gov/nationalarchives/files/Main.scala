@@ -36,7 +36,10 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     if(createResources) {
       for {
         _ <- updateLambdas(lambdas)
-        _ <- retry(invokeLambdas, List("create-db-users", "create-keycloak-db-user", "database-migrations"))
+        _ <- retry(invokeLambda, "create-db-users")
+        _ <- IO.sleep(1.minutes) //Give the database users time to create
+        _ <- retry(invokeLambda,"create-keycloak-db-user")
+        _ <- retry(invokeLambda, "database-migrations")
         _ <- runFileFormatTask()
         _ <- waitForServices(List("consignmentapi", "keycloak"))
       } yield ()

@@ -16,7 +16,7 @@ object Retry {
       IO.println(s"Giving up after $totalRetries retries")
   }
 
-  def retry[T](fn: List[String] => IO[T], args: List[String]): IO[Unit] =
+  def retry[T](fn: String => IO[T], args: String): IO[Unit] =
     retryingOnAllErrors[T](retryPolicy, logError)(fn(args)).map(_ => ())
 
   def retry[T](fn: () => IO[T]): IO[Unit] =

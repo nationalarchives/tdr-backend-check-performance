@@ -37,16 +37,14 @@ object LambdaUtils {
     lambdaClient.updateFunctionCode(request).toIO
   }
 
-  def invokeLambdas(lambdaNames: List[String]): IO[List[InvokeResponse]] = {
-    lambdaNames.map(name => {
-      lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$name-sbox").build()).toIO.flatMap(response => {
-        if(response.statusCode() == 200) {
-          IO.println(response) >> IO(response)
-        } else {
-          IO.raiseError(new Exception(""))
-        }
-      })
-    }).sequence
+  def invokeLambda(lambdaName: String): IO[InvokeResponse] = {
+    lambdaClient.invoke(InvokeRequest.builder.functionName(s"tdr-$lambdaName-sbox").build()).toIO.flatMap(response => {
+      if(response.statusCode() == 200) {
+        IO.println(response) >> IO(response)
+      } else {
+        IO.raiseError(new Exception(""))
+      }
+    })
   }
 
   def updateLambdas(lambdas: List[Lambda]): IO[List[UpdateFunctionCodeResponse]] = {
