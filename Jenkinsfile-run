@@ -100,7 +100,7 @@ pipeline {
         }
       }
     }
-    stage('Run Terraform build') {
+    stage('Run Terraform destroy') {
       agent {
         ecs {
           inheritFrom "terraform"
