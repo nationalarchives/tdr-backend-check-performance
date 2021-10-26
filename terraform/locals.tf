@@ -1,13 +1,13 @@
 locals {
   common_tags = tomap(
-  {
-    "Environment"     = "sandbox",
-    "Owner"           = "TDR",
-    "Terraform"       = true,
-    "TerraformSource" = "https://github.com/nationalarchives/tdr-backend-checks-performance"
-  }
+    {
+      "Environment"     = "sandbox",
+      "Owner"           = "TDR",
+      "Terraform"       = true,
+      "TerraformSource" = "https://github.com/nationalarchives/tdr-backend-checks-performance"
+    }
   )
-  environment = "sbox"
+  environment        = "sbox"
   environment_domain = "${var.project}-${local.environment_full_name}.${var.domain}"
 
   environment_full_name = "sandbox"
