@@ -92,7 +92,7 @@ pipeline {
       }
       when {
         beforeAgent true
-        expression { params.DELETE_RESOURCES }
+        expression { params.DESTROY_RESOURCES }
       }
       steps {
         script {
