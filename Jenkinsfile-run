@@ -7,8 +7,8 @@ def copyDockerImages(String imageName) {
 }
 
 def initialiseTerraform() {
-  sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
-  sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
+  sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
+  sh "git clone https://github.com/nationalarchives/tdr-terraform-environments.git"
   sh "terraform init"
   sh "terraform workspace new sbox || true"
   sh "terraform workspace select sbox"
