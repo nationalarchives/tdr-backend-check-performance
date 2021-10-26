@@ -2,24 +2,23 @@ package uk.gov.nationalarchives.files.aws
 
 import cats.effect.IO
 import cats.implicits._
-import sttp.client3.UriContext
+import io.circe.generic.auto._
+import software.amazon.awssdk.services.lambda.LambdaAsyncClient
+import software.amazon.awssdk.services.lambda.model.{InvokeRequest, InvokeResponse, UpdateFunctionCodeRequest, UpdateFunctionCodeResponse}
 import sttp.client3._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.circe.asJson
-import io.circe.generic.auto._
-import software.amazon.awssdk.services.lambda.{LambdaAsyncClient, LambdaClient}
-import software.amazon.awssdk.services.lambda.model.{InvokeRequest, InvokeResponse, UpdateFunctionCodeRequest, UpdateFunctionCodeResponse}
 import sttp.model.Uri
 import uk.gov.nationalarchives.files.Main.Lambda
 import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 
 import java.io.File
 import java.util.concurrent.CompletableFuture
-import scala.jdk.FutureConverters.CompletionStageOps
 import scala.concurrent.duration._
+import scala.jdk.FutureConverters.CompletionStageOps
 
 object LambdaUtils {
-  def lambdaClient = LambdaAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
+  def lambdaClient: LambdaAsyncClient = LambdaAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
   case class Asset(browser_download_url: String)
   case class Releases(assets: List[Asset])
 
@@ -28,7 +27,7 @@ object LambdaUtils {
   }
 
 
-  def updateFunctionCode(lambdaName: String, fileName: String) = {
+  def updateFunctionCode(lambdaName: String, fileName: String): IO[UpdateFunctionCodeResponse] = {
     val request = UpdateFunctionCodeRequest.builder
       .functionName(lambdaName)
       .s3Key(fileName)

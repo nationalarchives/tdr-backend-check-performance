@@ -9,7 +9,7 @@ import software.amazon.awssdk.services.elasticloadbalancingv2.model.{DescribeLoa
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
 
-object LoadBalancerUtils {
+object  LoadBalancerUtils {
   def client = ElasticLoadBalancingV2AsyncClient.builder
     .credentialsProvider(STSUtils.assumeRoleProvider)
     .build()

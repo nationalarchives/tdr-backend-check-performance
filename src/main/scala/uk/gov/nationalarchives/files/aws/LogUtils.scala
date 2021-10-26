@@ -15,7 +15,7 @@ import io.circe.generic.auto._
 object LogUtils {
   case class Messages(lambdaName: String, messages: List[String])
 
-  def client = CloudWatchLogsAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
+  def client: CloudWatchLogsAsyncClient = CloudWatchLogsAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
 
   private def getLogEvents(logStream: LogStream, logGroupName: String) = {
     val request = GetLogEventsRequest.builder.logGroupName(logGroupName).logStreamName(logStream.logStreamName).build
@@ -43,7 +43,7 @@ object LogUtils {
     }).sequence
   }
 
-  def getMessages(lambdas: List[String]) = lambdas.map(lambdaName => {
+  def getMessages(lambdas: List[String]): IO[List[Messages]] = lambdas.map(lambdaName => {
     val logGroupName = s"/aws/lambda/tdr-$lambdaName-sbox"
     for {
       result <- getLogStreams(logGroupName)
@@ -57,7 +57,7 @@ object LogUtils {
     }
   }).sequence
 
-  def getResults(lambdas: List[String]) = for {
+  def getResults(lambdas: List[String]): IO[List[FileCheckResults]] = for {
     messages <- getMessages(lambdas)
   } yield messages.map(message => {
     val results = message.messages.map(message => decode[Result](message))

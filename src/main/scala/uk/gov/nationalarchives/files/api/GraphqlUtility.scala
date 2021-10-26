@@ -90,7 +90,7 @@ class GraphqlUtility(userCredentials: UserCredentials) {
     } yield ConsignmentData(id, matchIdInfo, files)
   }
 
-  def getFileTypes(consignmentId: UUID) = {
+  def getFileTypes(consignmentId: UUID): IO[List[FileTypes]] = {
     val client = new UserApiClient[gce.Data, gce.Variables](userCredentials)
     for {
       exportResult <- client.result(gce.document, gce.Variables(consignmentId))

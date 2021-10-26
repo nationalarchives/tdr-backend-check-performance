@@ -83,7 +83,7 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
           fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
           _ <- database.updateFileFormat(fileTypes)
           _ <- database.insertResults(fileCheckResults)
-          aggregateResults <- database.getAggregateResults()
+          aggregateResults <- database.getAggregateResults
           reportGenerator = HtmlReport(aggregateResults)
           _ <- reportGenerator.createReport()
           _ <- CsvReport.csvReport(aggregateResults)

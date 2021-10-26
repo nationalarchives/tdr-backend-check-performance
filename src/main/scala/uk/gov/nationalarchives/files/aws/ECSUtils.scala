@@ -9,7 +9,6 @@ import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
 import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
 
 import java.util
-import java.util.stream.Collectors
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 

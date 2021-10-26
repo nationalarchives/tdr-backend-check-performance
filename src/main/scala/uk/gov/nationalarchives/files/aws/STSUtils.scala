@@ -13,7 +13,7 @@ object STSUtils {
 
   def assumeRoleCredentials: Credentials = stsClient.assumeRole(request).credentials()
 
-  def assumeRoleProvider = {
+  def assumeRoleProvider: StsAssumeRoleCredentialsProvider = {
     StsAssumeRoleCredentialsProvider.builder.refreshRequest(request).stsClient(stsClient).build()
   }
 

@@ -62,7 +62,7 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
       sql"update files set fileType = $fileType where fileId = $fileId;".update.run.transact(xa)
     }).sequence
 
-  def getAggregateResults() = {
+  def getAggregateResults: IO[List[AggregateResults]] = {
     fileCheckNames.map(fileCheck => {
       val checkName = fileCheck.split("_").map(_.capitalize).mkString(" ")
       Fragment(s"select f.filePath, f.fileSize, f.fileType, avg(timeTaken), count(*) from files f JOIN $fileCheck c on c.fileId = f.fileId group by 1,2,3", Nil).query[(String, Long, String, Double, Long)].to[List].transact(xa).map(results => {

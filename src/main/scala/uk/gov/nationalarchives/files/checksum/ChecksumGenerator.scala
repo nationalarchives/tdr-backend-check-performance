@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource}
 import uk.gov.nationalarchives.files.api.GraphqlUtility.MatchIdInfo
 
 import java.io.{File, FileInputStream}
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Paths}
 import java.security.MessageDigest
 
 object ChecksumGenerator {

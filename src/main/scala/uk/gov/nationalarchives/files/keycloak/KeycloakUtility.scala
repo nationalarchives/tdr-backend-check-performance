@@ -1,16 +1,16 @@
 package uk.gov.nationalarchives.files.keycloak
 import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.circe.asJson
-import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend, basicRequest, _}
+import sttp.client3.{basicRequest, _}
 
 import scala.language.postfixOps
 
 object KeycloakUtility {
-  val configuration = ConfigFactory.load
+  val configuration: Config = ConfigFactory.load
 
   def bearerAccessToken(requestBody: Map[String, String]): IO[BearerAccessToken] = {
     AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
