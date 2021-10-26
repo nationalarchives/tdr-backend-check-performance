@@ -6,6 +6,14 @@ def copyDockerImages(String imageName) {
   sh "docker push ${env.SANDBOX_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/${imageName}:sbox"
 }
 
+def initialiseTerraform() {
+  sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
+  sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
+  sh "terraform init"
+  sh "terraform workspace new sbox || true"
+  sh "terraform workspace select sbox"
+}
+
 pipeline {
   agent {
     label "built-in"
@@ -34,11 +42,7 @@ pipeline {
       }
       steps {
         dir("terraform") {
-          sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
-          sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
-          sh "terraform init"
-          sh "terraform workspace new sbox || true"
-          sh "terraform workspace select sbox"
+          initialiseTerraform()
           retry(5) {
             sh "terraform apply --auto-approve"
           }
@@ -117,12 +121,8 @@ pipeline {
       }
       steps {
         dir("terraform") {
+          initialiseTerraform()
           retry(5) {
-            sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
-            sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
-            sh "terraform init"
-            sh "terraform workspace new sbox || true"
-            sh "terraform workspace select sbox"
             sh "terraform destroy --auto-approve"
           }
         }
