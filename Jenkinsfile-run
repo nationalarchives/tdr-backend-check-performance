@@ -12,6 +12,7 @@ pipeline {
   }
   parameters {
     booleanParam(name: 'CREATE_RESOURCES', defaultValue: false)
+    booleanParam(name: 'DESTROY_RESOURCES', defaultValue: false)
     string(name: 'FILES', defaultValue: '')
   }
 
@@ -62,6 +63,10 @@ pipeline {
           taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
         }
       }
+      when {
+        beforeAgent true
+        expression { !params.DESTROY_RESOURCES && params.FILES != '' }
+      }
       steps {
         script {
           if(params.CREATE_RESOURCES) {
@@ -76,6 +81,46 @@ pipeline {
             reportFiles: 'output.html',
             reportName: "Performance Checks Report"
         ])
+      }
+    }
+    stage('Remove deletion protection') {
+      agent {
+        ecs {
+          inheritFrom "transfer-frontend"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
+        }
+      }
+      when {
+        beforeAgent true
+        expression { params.DELETE_RESOURCES }
+      }
+      steps {
+        script {
+          sh "sbt -no-colors 'run -d ${params.FILES}'"
+        }
+      }
+    }
+    stage('Run Terraform build') {
+      agent {
+        ecs {
+          inheritFrom "terraform"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRoleSbox"
+        }
+      }
+      when {
+        beforeAgent true
+        expression { params.DESTROY_RESOURCES }
+      }
+      environment {
+        TF_VAR_tdr_account_number = "${env.SANDBOX_ACCOUNT}"
+        TF_CLI_ARGS = "-no-color"
+      }
+      steps {
+        dir("terraform") {
+          retry(5) {
+            sh "terraform destroy --auto-approve"
+          }
+        }
       }
     }
   }
