@@ -118,6 +118,11 @@ pipeline {
       steps {
         dir("terraform") {
           retry(5) {
+            sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-modules.git"
+            sh "git clone --branch changes-for-performance-checks https://github.com/nationalarchives/tdr-terraform-environments.git"
+            sh "terraform init"
+            sh "terraform workspace new sbox || true"
+            sh "terraform workspace select sbox"
             sh "terraform destroy --auto-approve"
           }
         }
