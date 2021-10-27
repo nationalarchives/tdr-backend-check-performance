@@ -8,8 +8,8 @@ import scala.sys.process._
 
 ThisBuild / scalaVersion     := "2.13.6"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "uk/gov/nationalarchives/files"
+ThisBuild / organization     := "uk.gov.nationalarchives.performancechecks"
+ThisBuild / organizationName := "National Archives"
 ThisBuild / resolvers +="TDR Releases" at "s3://tdr-releases-mgmt"
 
 lazy val generateChangelogFile = taskKey[Unit]("Generates a changelog file from the last version")

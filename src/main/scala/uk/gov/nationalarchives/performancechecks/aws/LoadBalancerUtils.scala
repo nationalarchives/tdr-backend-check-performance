@@ -1,7 +1,7 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
-import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
+import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
 import cats.implicits._
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2AsyncClient
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.{DescribeLoadBalancersRequest, DescribeTargetGroupsRequest, DescribeTargetHealthRequest, LoadBalancer, LoadBalancerAttribute, ModifyLoadBalancerAttributesRequest, TargetHealthStateEnum}

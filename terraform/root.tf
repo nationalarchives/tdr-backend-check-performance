@@ -216,7 +216,6 @@ module "checksum_lambda" {
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
 }
 
-
 module "file_format_lambda" {
   source                                 = "./tdr-terraform-modules/lambda"
   project                                = var.project

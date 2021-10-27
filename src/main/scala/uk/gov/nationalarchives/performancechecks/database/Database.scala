@@ -1,13 +1,13 @@
-package uk.gov.nationalarchives.files.database
+package uk.gov.nationalarchives.performancechecks.database
 
 import cats.effect.IO
 import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor.Aux
-import uk.gov.nationalarchives.files.Main.FileCheckResults
-import uk.gov.nationalarchives.files.api.GraphqlUtility.ConsignmentData
-import uk.gov.nationalarchives.files.database.Database.{AggregateResult, AggregateResults, FileTypes}
+import uk.gov.nationalarchives.performancechecks.Main.FileCheckResults
+import uk.gov.nationalarchives.performancechecks.api.GraphqlUtility.ConsignmentData
+import uk.gov.nationalarchives.performancechecks.database.Database.{AggregateResult, AggregateResults, FileTypes}
 
 import java.util.UUID
 import scala.math.BigDecimal.RoundingMode
@@ -27,7 +27,6 @@ class Database(xa: Aux[IO, Unit], fileCheckNames: List[String]) {
       fileType TEXT
     )
   """.update.run
-
 
     def createTimeTable(fileCheck: String) = Fragment(s"CREATE TABLE $fileCheck", Nil) ++ fr" (fileId  TEXT, timeTaken INTEGER)"
     def deleteTimeTable(fileCheck: String) = Fragment(s"DROP TABLE IF EXISTS $fileCheck", Nil)

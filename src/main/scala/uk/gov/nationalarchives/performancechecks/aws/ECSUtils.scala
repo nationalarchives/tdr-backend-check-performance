@@ -1,18 +1,20 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.ec2.model._
 import software.amazon.awssdk.services.ecs.EcsAsyncClient
 import software.amazon.awssdk.services.ecs.model._
-import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
-import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
+import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
 
 import java.util
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 object ECSUtils {
+  val clusterName = "file_format_build_sbox"
+  val taskName = "file-format-build-sbox"
   def runFileFormatTask(): IO[String] = {
     val ec2Client = Ec2AsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
     val ecsClient = EcsAsyncClient.builder.credentialsProvider(assumeRoleProvider).build()
@@ -36,8 +38,8 @@ object ECSUtils {
         ).build
 
       RunTaskRequest.builder
-        .cluster("file_format_build_sbox")
-        .taskDefinition("file-format-build-sbox")
+        .cluster(clusterName)
+        .taskDefinition(taskName)
         .launchType("FARGATE")
         .platformVersion("1.4.0")
         .networkConfiguration(networkConfiguration)
@@ -47,7 +49,7 @@ object ECSUtils {
     def waitForTaskToComplete(taskResponse: RunTaskResponse): IO[Boolean] = {
       val taskArns = taskResponse.tasks.asScala.map(_.taskArn).asJava
       val request = DescribeTasksRequest.builder
-        .cluster("file_format_build_sbox")
+        .cluster(clusterName)
         .tasks(taskArns)
         .build
       for {

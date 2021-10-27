@@ -1,13 +1,13 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
 import io.circe.parser.decode
 import cats.implicits._
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsAsyncClient
 import software.amazon.awssdk.services.cloudwatchlogs.model.{DeleteLogStreamRequest, DescribeLogStreamsRequest, GetLogEventsRequest, LogStream}
-import uk.gov.nationalarchives.files.Main.{FileCheckResults, Result}
-import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
-import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
+import uk.gov.nationalarchives.performancechecks.Main.{FileCheckResults, Result}
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
+import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
 
 import scala.jdk.CollectionConverters._
 import io.circe.generic.auto._

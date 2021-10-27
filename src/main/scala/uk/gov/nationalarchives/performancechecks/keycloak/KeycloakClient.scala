@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.keycloak
+package uk.gov.nationalarchives.performancechecks.keycloak
 
 import com.typesafe.config.ConfigFactory
 
@@ -8,7 +8,7 @@ import org.keycloak.admin.client.resource.{RealmResource, UsersResource}
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.keycloak.representations.idm.{CredentialRepresentation, UserRepresentation}
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
-import uk.gov.nationalarchives.files.aws.SystemsManagerUtils
+import uk.gov.nationalarchives.performancechecks.aws.SystemsManagerUtils
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
@@ -51,7 +51,7 @@ object KeycloakClient {
     userRepresentation.setLastName(userCredentials.lastName)
     userRepresentation.setEnabled(true)
     userRepresentation.setCredentials(creds)
-    userRepresentation.setAttributes(Map("body" -> List("MOCK1").asJava).asJava)
+    userRepresentation.setGroups(List(s"/transferring_body_user/Mock 1 Department").asJava)
     userRepresentation.setRealmRoles(List("tdr_user").asJava)
 
     val response: Response = user.create(userRepresentation)
@@ -73,5 +73,5 @@ object KeycloakClient {
 
 case class UserCredentials(userName: String,
                            password: String,
-                           firstName: String = "Test First Name",
-                           lastName: String = "Test Last Name")
+                           firstName: String = "Performance Test First Name",
+                           lastName: String = "Performance Test Last Name")

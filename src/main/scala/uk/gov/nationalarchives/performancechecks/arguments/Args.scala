@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.arguments
+package uk.gov.nationalarchives.performancechecks.arguments
 
 import cats.implicits._
 import com.monovore.decline._

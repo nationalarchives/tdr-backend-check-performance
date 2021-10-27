@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.keycloak
+package uk.gov.nationalarchives.performancechecks.keycloak
 import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.typesafe.config.{Config, ConfigFactory}

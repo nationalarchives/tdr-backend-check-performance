@@ -1,8 +1,8 @@
-package uk.gov.nationalarchives.files.html
+package uk.gov.nationalarchives.performancechecks.html
 
 import cats.effect.IO
 import scalatags.Text.all._
-import uk.gov.nationalarchives.files.database.Database.{AggregateResult, AggregateResults}
+import uk.gov.nationalarchives.performancechecks.database.Database.{AggregateResult, AggregateResults}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}

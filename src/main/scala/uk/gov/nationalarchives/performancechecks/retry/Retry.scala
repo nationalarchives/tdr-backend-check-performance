@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.retry
+package uk.gov.nationalarchives.performancechecks.retry
 
 import cats.effect.IO
 import retry.RetryDetails._
@@ -18,8 +18,4 @@ object Retry {
 
   def retry[T](fn: String => IO[T], args: String): IO[Unit] =
     retryingOnAllErrors[T](retryPolicy, logError)(fn(args)).map(_ => ())
-
-  def retry[T](fn: () => IO[T]): IO[Unit] =
-    retryingOnAllErrors[T](retryPolicy, logError)(fn()).map(_ => ())
-
 }

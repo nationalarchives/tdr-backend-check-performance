@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.api
+package uk.gov.nationalarchives.performancechecks.api
 
 import cats.effect.IO
 import cats.implicits._
@@ -11,10 +11,10 @@ import graphql.codegen.GetSeries.{getSeries => gs}
 import graphql.codegen.StartUpload.{StartUpload => su}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.types._
-import uk.gov.nationalarchives.files.api.GraphqlUtility.{ConsignmentData, MatchIdInfo}
-import uk.gov.nationalarchives.files.checksum.ChecksumGenerator
-import uk.gov.nationalarchives.files.database.Database.FileTypes
-import uk.gov.nationalarchives.files.keycloak.UserCredentials
+import uk.gov.nationalarchives.performancechecks.api.GraphqlUtility.{ConsignmentData, MatchIdInfo}
+import uk.gov.nationalarchives.performancechecks.checksum.ChecksumGenerator
+import uk.gov.nationalarchives.performancechecks.database.Database.FileTypes
+import uk.gov.nationalarchives.performancechecks.keycloak.UserCredentials
 
 import java.io.File
 import java.nio.file.Path
@@ -76,17 +76,18 @@ class GraphqlUtility(userCredentials: UserCredentials) {
     }
   }
 
-  def createConsignmentAndFiles(client: GraphqlUtility, filePath: String): IO[ConsignmentData] = {
+  def createConsignmentAndFiles(): IO[ConsignmentData] = {
+    val filePath = "content"
     for {
-      consignment <- client.createConsignment("MOCK1")
+      consignment <- createConsignment("MOCK1")
       id <- IO.fromOption(consignment.addConsignment.consignmentid)(new Exception("No consignment ID"))
-      _ <- IO(client.createTransferAgreement(id))
+      _ <- IO(createTransferAgreement(id))
       matchIdInfo <-
         new File(filePath).list()
           .zipWithIndex
           .map(zippedPath => ChecksumGenerator.generate(s"$filePath/${zippedPath._1}", zippedPath._2))
           .toList.sequence
-      files <- client.addFilesAndMetadata(id, filePath.split("/").head, matchIdInfo)
+      files <- addFilesAndMetadata(id, filePath.split("/").head, matchIdInfo)
     } yield ConsignmentData(id, matchIdInfo, files)
   }
 

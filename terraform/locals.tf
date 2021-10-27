@@ -7,7 +7,9 @@ locals {
       "TerraformSource" = "https://github.com/nationalarchives/tdr-backend-checks-performance"
     }
   )
+
   environment        = "sbox"
+
   environment_domain = "${var.project}-${local.environment_full_name}.${var.domain}"
 
   environment_full_name = "sandbox"

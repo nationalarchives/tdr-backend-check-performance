@@ -1,8 +1,8 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import software.amazon.awssdk.services.ssm.SsmClient
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest
-import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 
 object SystemsManagerUtils {
   def managementParameter(name: String): String = {

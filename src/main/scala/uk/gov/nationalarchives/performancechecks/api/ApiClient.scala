@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.api
+package uk.gov.nationalarchives.performancechecks.api
 
 import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
@@ -6,7 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.{Decoder, Encoder}
 import sangria.ast.Document
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
-import uk.gov.nationalarchives.files.keycloak.{KeycloakUtility, UserCredentials}
+import uk.gov.nationalarchives.performancechecks.keycloak.{KeycloakUtility, UserCredentials}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global

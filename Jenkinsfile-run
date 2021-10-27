@@ -25,7 +25,7 @@ pipeline {
   }
 
   stages {
-    stage('Run Terraform build') {
+    stage('Run Terrraform build in Sandbox environment') {
       agent {
         ecs {
           inheritFrom "terraform"
@@ -104,7 +104,7 @@ pipeline {
         }
       }
     }
-    stage('Run Terraform destroy') {
+    stage('Run Terraform destroy in Sandbox environment') {
       agent {
         ecs {
           inheritFrom "terraform"

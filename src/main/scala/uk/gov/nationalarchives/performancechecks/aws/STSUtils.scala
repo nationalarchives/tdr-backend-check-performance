@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import software.amazon.awssdk.services.sts.StsClient
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
@@ -16,5 +16,4 @@ object STSUtils {
   def assumeRoleProvider: StsAssumeRoleCredentialsProvider = {
     StsAssumeRoleCredentialsProvider.builder.refreshRequest(request).stsClient(stsClient).build()
   }
-
 }

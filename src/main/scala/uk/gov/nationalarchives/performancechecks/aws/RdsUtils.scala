@@ -1,10 +1,10 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
 import software.amazon.awssdk.services.rds.RdsAsyncClient
 import software.amazon.awssdk.services.rds.model.{DBCluster, DescribeDbClustersRequest, ModifyDbClusterRequest, ModifyDbClusterResponse}
-import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
-import uk.gov.nationalarchives.files.aws.LambdaUtils.FutureUtils
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
+import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
 import cats.implicits._
 
 import scala.jdk.CollectionConverters._
@@ -27,6 +27,4 @@ object RdsUtils {
       _ <- dbClusters.dbClusters.asScala.toList.map(noDeletionProtection).sequence
     } yield ()
   }
-
-
 }

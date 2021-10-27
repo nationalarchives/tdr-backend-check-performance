@@ -1,20 +1,20 @@
-package uk.gov.nationalarchives.files
+package uk.gov.nationalarchives.performancechecks
 
 import cats.effect.{ExitCode, IO}
 import cats.implicits._
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
-import uk.gov.nationalarchives.files.api.GraphqlUtility
-import uk.gov.nationalarchives.files.arguments.Args.{PerformanceChecks, performanceChecks}
-import uk.gov.nationalarchives.files.aws.ECSUtils._
-import uk.gov.nationalarchives.files.aws.LambdaUtils._
-import uk.gov.nationalarchives.files.aws.LoadBalancerUtils._
-import uk.gov.nationalarchives.files.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Utils}
-import uk.gov.nationalarchives.files.database.Database
-import uk.gov.nationalarchives.files.html.HtmlReport
-import uk.gov.nationalarchives.files.csv.CsvReport
-import uk.gov.nationalarchives.files.keycloak.{KeycloakClient, UserCredentials}
-import uk.gov.nationalarchives.files.retry.Retry.retry
+import uk.gov.nationalarchives.performancechecks.api.GraphqlUtility
+import uk.gov.nationalarchives.performancechecks.arguments.Args.{PerformanceChecks, performanceChecks}
+import uk.gov.nationalarchives.performancechecks.aws.ECSUtils._
+import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils._
+import uk.gov.nationalarchives.performancechecks.aws.LoadBalancerUtils._
+import uk.gov.nationalarchives.performancechecks.aws.{LoadBalancerUtils, LogUtils, RdsUtils, S3Utils}
+import uk.gov.nationalarchives.performancechecks.database.Database
+import uk.gov.nationalarchives.performancechecks.html.HtmlReport
+import uk.gov.nationalarchives.performancechecks.csv.CsvReport
+import uk.gov.nationalarchives.performancechecks.keycloak.{KeycloakClient, UserCredentials}
+import uk.gov.nationalarchives.performancechecks.retry.Retry.retry
 
 import java.nio.file.Path
 import java.util.UUID
@@ -50,7 +50,7 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
 
   def createFileCheckResults(files: List[Path], createResults: Boolean): IO[Unit] = {
     if(createResults) {
-      files.map(filePath => {
+      {
         val userName: String = randomString
         val password: String = randomString
         val userCredentials: UserCredentials = UserCredentials(userName, password)
@@ -74,8 +74,8 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
         for {
           _ <- database.createTables()
           _ <- LogUtils.deleteExistingLogStreams(checkNames)
-          _ <- S3Utils.downloadFiles(filePath)
-          consignment <- graphqlClient.createConsignmentAndFiles(graphqlClient, filePath.toString)
+          _ <- S3Utils.downloadFiles(files)
+          consignment <- graphqlClient.createConsignmentAndFiles()
           _ <- database.insertFiles(consignment)
           _ <- S3Utils.uploadConsignmentFiles(UUID.randomUUID(), consignment)
           _ <- checkFileProgress(consignment.consignmentId)
@@ -88,7 +88,7 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
           _ <- reportGenerator.createReport()
           _ <- CsvReport.csvReport(aggregateResults)
         } yield ()
-      }).head
+      }
     } else {
       IO.unit
     }

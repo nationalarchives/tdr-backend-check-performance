@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.files.aws
+package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
 import cats.implicits._
@@ -9,8 +9,8 @@ import sttp.client3._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.circe.asJson
 import sttp.model.Uri
-import uk.gov.nationalarchives.files.Main.Lambda
-import uk.gov.nationalarchives.files.aws.STSUtils.assumeRoleProvider
+import uk.gov.nationalarchives.performancechecks.Main.Lambda
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -25,7 +25,6 @@ object LambdaUtils {
   implicit class FutureUtils[T](f: CompletableFuture[T]) {
     def toIO: IO[T] = IO.fromFuture(IO(f.asScala))
   }
-
 
   def updateFunctionCode(lambdaName: String, fileName: String): IO[UpdateFunctionCodeResponse] = {
     val request = UpdateFunctionCodeRequest.builder
@@ -73,6 +72,4 @@ object LambdaUtils {
       }).sequence
     }
   }
-
-
 }
