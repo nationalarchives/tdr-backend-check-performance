@@ -8,7 +8,7 @@ locals {
     }
   )
 
-  environment        = "sbox"
+  environment = "sbox"
 
   environment_domain = "${var.project}-${local.environment_full_name}.${var.domain}"
 
