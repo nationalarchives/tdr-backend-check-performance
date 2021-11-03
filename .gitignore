@@ -1,3 +1,7 @@
 terraform.tfstate.d
 .idea
 .terraform
+.bsp/
+target/
+tdr-terraform-environments
+tdr-terraform-modules

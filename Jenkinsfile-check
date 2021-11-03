@@ -1,0 +1,6 @@
+library("tdr-jenkinslib")
+
+terraformCheckJob(
+  repo: "tdr-backend-check-performance",
+  terraformDirectoryPath: "terraform"
+)
