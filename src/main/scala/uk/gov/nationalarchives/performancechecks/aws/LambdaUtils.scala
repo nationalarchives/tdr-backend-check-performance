@@ -9,6 +9,7 @@ import sttp.client3._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.circe.asJson
 import sttp.model.Uri
+import sttp.model.Uri.QuerySegmentEncoding
 import uk.gov.nationalarchives.performancechecks.Main.Lambda
 import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 
@@ -47,6 +48,10 @@ object LambdaUtils {
 
   def updateLambdas(lambdas: List[Lambda]): IO[List[UpdateFunctionCodeResponse]] = {
     AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
+      val followRedirectsBackend = new FollowRedirectsBackend(
+        delegate = backend,
+        transformUri = _.querySegmentsEncoding(QuerySegmentEncoding.All)
+      )
       def request(lambdaName: String) = basicRequest
         .get(uri"https://api.github.com/repos/nationalarchives/tdr-$lambdaName/releases/latest")
         .response(asJson[Releases])
@@ -60,7 +65,8 @@ object LambdaUtils {
         for {
           res <- backend.send(request(l.repoName))
           body <- IO.fromEither(res.body)
-          fileResponse <- backend.send(download(uri"${body.assets.head.browser_download_url}"))
+          downloadRequest <- IO(download(uri"${body.assets.head.browser_download_url}"))
+          fileResponse <- followRedirectsBackend.send(downloadRequest)
           file <- IO.fromEither(fileResponse.body.left.map(err => new Exception(err)))
           _ <- IO(S3Utils.uploadLambdaFile(file.getPath))
           lambdaResponse <- updateFunctionCode(s"tdr-$lambdaName-sbox", file.getPath)
