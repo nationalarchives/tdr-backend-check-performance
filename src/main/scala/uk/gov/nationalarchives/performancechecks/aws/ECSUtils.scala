@@ -1,15 +1,15 @@
 package uk.gov.nationalarchives.performancechecks.aws
 
 import cats.effect.IO
+import software.amazon.awssdk.core.waiters.WaiterResponse
 import software.amazon.awssdk.services.ec2.Ec2AsyncClient
 import software.amazon.awssdk.services.ec2.model._
 import software.amazon.awssdk.services.ecs.EcsAsyncClient
 import software.amazon.awssdk.services.ecs.model._
-import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
+import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 
 import java.util
-import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 object ECSUtils {
@@ -46,21 +46,13 @@ object ECSUtils {
         .build
     }
 
-    def waitForTaskToComplete(taskResponse: RunTaskResponse): IO[Boolean] = {
+    def waitForTaskToComplete(taskResponse: RunTaskResponse): IO[WaiterResponse[DescribeTasksResponse]] = {
       val taskArns = taskResponse.tasks.asScala.map(_.taskArn).asJava
       val request = DescribeTasksRequest.builder
         .cluster(clusterName)
         .tasks(taskArns)
         .build
-      for {
-        tasks <- ecsClient.describeTasks(request).toIO
-        stillRunning = tasks.tasks.asScala.toList.flatMap(_.containers.asScala.map(_.exitCode == 0)).contains(false)
-        completed <- if(stillRunning) {
-          IO.sleep(10.seconds).flatMap(_ => waitForTaskToComplete(taskResponse))
-        } else {
-          IO(true)
-        }
-      } yield completed
+      ecsClient.waiter().waitUntilTasksStopped(request).toIO
     }
 
     for {
