@@ -68,7 +68,8 @@ object LambdaUtils {
           downloadRequest <- IO(download(uri"${body.assets.head.browser_download_url}"))
           fileResponse <- followRedirectsBackend.send(downloadRequest)
           file <- IO.fromEither(fileResponse.body.left.map(err => new Exception(err)))
-          _ <- IO(S3Utils.uploadLambdaFile(file.getPath))
+          _ <- S3Utils.uploadLambdaFile(file.getPath)
+          _ <- IO.sleep(5.seconds) //We were getting key does not exist so wait for 5 seconds
           lambdaResponse <- updateFunctionCode(s"tdr-$lambdaName-sbox", file.getPath)
           _ <- IO.println(lambdaResponse)
           _ <- IO.sleep(20.seconds) //Wait before invoking lambdas as this can fail

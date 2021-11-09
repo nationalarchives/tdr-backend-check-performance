@@ -36,12 +36,16 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
     if(createResources) {
       for {
         _ <- updateLambdas(lambdas)
+        _ <- IO.println("Finished updating lambdas")
         _ <- retry(invokeLambda, "create-db-users")
         _ <- IO.sleep(1.minutes) //Give the database users time to create
         _ <- retry(invokeLambda,"create-keycloak-db-user")
         _ <- retry(invokeLambda, "database-migrations")
+        _ <- IO.println("Finished invoking lambdas")
         _ <- runFileFormatTask()
+        _ <- IO.println("Finished running file format task")
         _ <- waitForServices(List("consignmentapi", "keycloak"))
+        _ <- IO.println("Finished waiting for the services to start")
       } yield ()
     } else {
       IO.unit
