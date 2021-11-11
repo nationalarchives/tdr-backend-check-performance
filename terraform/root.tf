@@ -211,7 +211,7 @@ module "download_files_lambda" {
   api_url                                = module.consignment_api.api_url
   backend_checks_efs_root_directory_path = module.backend_checks_efs.root_directory_path
   private_subnet_ids                     = module.backend_checks_efs.private_subnets
-  backend_checks_client_secret           = module.keycloak.backend_checks_client_secret
+  backend_checks_client_secret           = module.keycloak_ssm_parameters.params[local.keycloak_backend_checks_secret_name].value
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
   reserved_concurrency                   = 3
@@ -331,7 +331,7 @@ module "api_update_lambda" {
   timeout_seconds                       = local.file_check_lambda_timeouts_in_seconds["api_update"]
   auth_url                              = local.auth_url
   api_url                               = module.consignment_api.api_url
-  keycloak_backend_checks_client_secret = module.keycloak.backend_checks_client_secret
+  keycloak_backend_checks_client_secret = module.keycloak_ssm_parameters.params[local.keycloak_backend_checks_secret_name].value
   kms_key_arn                           = module.encryption_key.kms_key_arn
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
@@ -373,7 +373,7 @@ module "keycloak_cloudwatch" {
 module "keycloak_ecs_execution_policy" {
   source        = "./tdr-terraform-modules/iam_policy"
   name          = "KeycloakECSExecutionPolicy${title(local.environment)}"
-  policy_string = templatefile("./tdr-terraform-modules/iam_policy/templates/keycloak_ecs_execution_policy.json.tpl", { cloudwatch_log_group = module.keycloak_cloudwatch.log_group_arn, ecr_account_number = local.ecr_account_number })
+  policy_string = templatefile("./tdr-terraform-modules/iam_policy/templates/keycloak_ecs_execution_policy.json.tpl", { cloudwatch_log_group = module.keycloak_cloudwatch.log_group_arn, ecr_account_number = data.aws_caller_identity.current.account_id })
 }
 
 module "keycloak_ecs_task_policy" {
@@ -461,7 +461,7 @@ module "tdr_keycloak" {
   alb_target_group_arn = module.keycloak_tdr_alb.alb_target_group_arn
   cluster_name         = "keycloak_new_${local.environment}"
   common_tags          = local.common_tags
-  container_definition = templatefile("${path.module}/templates/ecs_tasks/keycloak.json.tpl", {
+  container_definition = templatefile("./tdr-terraform-environments/templates/ecs_tasks/keycloak.json.tpl", {
     app_image                         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.eu-west-2.amazonaws.com/auth-server:${local.environment}"
     app_port                          = 8080
     app_environment                   = local.environment
