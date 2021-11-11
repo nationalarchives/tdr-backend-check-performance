@@ -446,7 +446,7 @@ module "keycloak_alb_security_group" {
 module "keycloak_database_security_group" {
   source      = "./tdr-terraform-modules/security_group"
   description = "Controls access to the keycloak database"
-  name        = "keycloak-database-security-group-new-${local.environment}"
+  name        = "keycloak-database-security-group-${local.environment}"
   vpc_id      = module.shared_vpc.vpc_id
   common_tags = local.common_tags
   ingress_security_group_rules = [
@@ -459,7 +459,7 @@ module "keycloak_database_security_group" {
 module "tdr_keycloak" {
   source               = "./tdr-terraform-modules/generic_ecs"
   alb_target_group_arn = module.keycloak_tdr_alb.alb_target_group_arn
-  cluster_name         = "keycloak_new_${local.environment}"
+  cluster_name         = "keycloak_${local.environment}"
   common_tags          = local.common_tags
   container_definition = templatefile("./tdr-terraform-environments/templates/ecs_tasks/keycloak.json.tpl", {
     app_image                         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.eu-west-2.amazonaws.com/auth-server:${local.environment}"
