@@ -73,7 +73,7 @@ class HtmlReport(aggregateResults: List[AggregateResults]) {
                       )
                     ),
                     tbody(
-                      for (row <- result.results.sortBy(-_.timeTaken)) yield
+                      for (row <- result.results.sortBy(-_.timeTaken).take(10)) yield
                         tr(
                           td(row.filePath),
                           td(row.fileSize),
