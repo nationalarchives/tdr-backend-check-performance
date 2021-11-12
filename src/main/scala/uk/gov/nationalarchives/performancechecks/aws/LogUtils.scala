@@ -49,17 +49,17 @@ object LogUtils {
             .logGroupName(logGroupName)
             .logStreamName(logStream.logStreamName)
             .build
-          client.deleteLogStream(deleteRequest).toIO
+          client.deleteLogStream(deleteRequest).toIO >> IO.sleep(250.milliseconds)
         }).sequence
       } yield ()
-    }).sequence
+    } >> IO.sleep(1.second)).sequence
   }
 
   def getMessages(lambdas: List[String]): IO[List[Messages]] = lambdas.map(lambdaName => {
     val logGroupName = s"/aws/lambda/tdr-$lambdaName-sbox"
     for {
       result <- getLogStreams(logGroupName)
-      logEvents <- result.map(logStream => IO.sleep(200.milliseconds) >> getLogEvents(logStream, logGroupName)).sequence
+      logEvents <- result.map(logStream => IO.sleep(250.milliseconds) >> getLogEvents(logStream, logGroupName)).sequence
     } yield {
       val messages = for {
         logEvent <- logEvents
