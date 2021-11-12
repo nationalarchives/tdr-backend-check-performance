@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.{DeleteLogStreamRequ
 import uk.gov.nationalarchives.performancechecks.Main.{FileCheckResults, Result}
 import uk.gov.nationalarchives.performancechecks.aws.STSUtils.assumeRoleProvider
 import uk.gov.nationalarchives.performancechecks.aws.LambdaUtils.FutureUtils
+import scala.concurrent.duration._
 
 import scala.jdk.CollectionConverters._
 import io.circe.generic.auto._
@@ -22,9 +23,20 @@ object LogUtils {
     client.getLogEvents(request).toIO
   }
 
-  private def getLogStreams(logGroupName: String) = {
-    val request = DescribeLogStreamsRequest.builder.logGroupName(logGroupName).build()
-    client.describeLogStreams(request).toIO
+  private def getLogStreams(logGroupName: String, nextToken: Option[String] = None): IO[List[LogStream]] = {
+    val request = if(nextToken.isDefined) {
+      DescribeLogStreamsRequest.builder.logGroupName(logGroupName).nextToken(nextToken.get).build
+    } else {
+      DescribeLogStreamsRequest.builder.logGroupName(logGroupName).build
+    }
+    for {
+      res <- client.describeLogStreams(request).toIO
+      streams <- if(res.nextToken== null) {
+        IO.sleep(2.seconds) >> IO(res.logStreams.asScala.toList)
+      } else {
+        IO.sleep(2.second) >> getLogStreams(logGroupName, Some(res.nextToken)).flatMap(s => IO(s ++ res.logStreams.asScala.toList))
+      }
+    } yield streams
   }
 
   def deleteExistingLogStreams(lambdas: List[String]): IO[List[Unit]] = {
@@ -32,22 +44,22 @@ object LogUtils {
       val logGroupName = s"/aws/lambda/tdr-$lambdaName-sbox"
       for {
         result <- getLogStreams(logGroupName)
-        _ <- result.logStreams.asScala.toList.map(logStream => {
+        _ <- result.map(logStream => {
           val deleteRequest = DeleteLogStreamRequest.builder
             .logGroupName(logGroupName)
             .logStreamName(logStream.logStreamName)
             .build
-          client.deleteLogStream(deleteRequest).toIO
+          client.deleteLogStream(deleteRequest).toIO >> IO.sleep(250.milliseconds)
         }).sequence
       } yield ()
-    }).sequence
+    } >> IO.sleep(1.second)).sequence
   }
 
   def getMessages(lambdas: List[String]): IO[List[Messages]] = lambdas.map(lambdaName => {
     val logGroupName = s"/aws/lambda/tdr-$lambdaName-sbox"
     for {
       result <- getLogStreams(logGroupName)
-      logEvents <- result.logStreams().asScala.toList.map(logStream => getLogEvents(logStream, logGroupName)).sequence
+      logEvents <- result.map(logStream => IO.sleep(250.milliseconds) >> getLogEvents(logStream, logGroupName)).sequence
     } yield {
       val messages = for {
         logEvent <- logEvents
