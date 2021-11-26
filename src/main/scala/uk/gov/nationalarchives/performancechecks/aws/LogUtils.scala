@@ -49,7 +49,7 @@ object LogUtils {
             .logGroupName(logGroupName)
             .logStreamName(logStream.logStreamName)
             .build
-          client.deleteLogStream(deleteRequest).toIO >> IO.sleep(250.milliseconds)
+          client.deleteLogStream(deleteRequest).toIO >> IO.sleep(500.milliseconds)
         }).sequence
       } yield ()
     } >> IO.sleep(1.second)).sequence
@@ -59,7 +59,7 @@ object LogUtils {
     val logGroupName = s"/aws/lambda/tdr-$lambdaName-sbox"
     for {
       result <- getLogStreams(logGroupName)
-      logEvents <- result.map(logStream => IO.sleep(250.milliseconds) >> getLogEvents(logStream, logGroupName)).sequence
+      logEvents <- result.map(logStream => IO.sleep(500.milliseconds) >> getLogEvents(logStream, logGroupName)).sequence
     } yield {
       val messages = for {
         logEvent <- logEvents
