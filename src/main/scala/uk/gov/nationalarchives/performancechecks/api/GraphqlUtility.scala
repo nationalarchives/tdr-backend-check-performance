@@ -28,7 +28,7 @@ class GraphqlUtility(userCredentials: UserCredentials) {
     for {
       result <- getSeries(body)
       series <- IO.fromOption(result)(new Exception("No series found"))
-      data <- client.result(ac.document, ac.Variables(AddConsignmentInput(series.getSeries.head.seriesid))).map(_.data)
+      data <- client.result(ac.document, ac.Variables(AddConsignmentInput(Some(series.getSeries.head.seriesid), "standard"))).map(_.data)
       consignment <- IO.fromOption(data)(new Exception("Consignment was not created"))
     } yield consignment
   }
