@@ -55,7 +55,7 @@ pipeline {
         expression { params.CREATE_RESOURCES }
       }
       steps {
-//        copyDockerImages("consignment-api")
+        copyDockerImages("consignment-api")
         copyDockerImages("auth-server")
         copyDockerImages("file-format-build")
       }
