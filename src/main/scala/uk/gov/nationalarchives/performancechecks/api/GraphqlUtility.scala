@@ -3,12 +3,12 @@ package uk.gov.nationalarchives.performancechecks.api
 import cats.effect.IO
 import cats.implicits._
 import graphql.codegen.AddConsignment.{addConsignment => ac}
-import graphql.codegen.AddFilesAndMetadata.AddFilesAndMetadata.AddFilesAndMetadata
-import graphql.codegen.AddFilesAndMetadata.{AddFilesAndMetadata => afam}
-import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
+import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
+import graphql.codegen.AddFilesAndMetadata.{addFilesAndMetadata => afam}
+import graphql.codegen.AddTransferAgreement.{addTransferAgreement => ata}
 import graphql.codegen.GetFileCheckProgressSummary.{getFileCheckProgressSummary => fcps}
 import graphql.codegen.GetSeries.{getSeries => gs}
-import graphql.codegen.StartUpload.{StartUpload => su}
+import graphql.codegen.StartUpload.{startUpload => su}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.types._
 import uk.gov.nationalarchives.performancechecks.api.GraphqlUtility.{ConsignmentData, MatchIdInfo}
