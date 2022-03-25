@@ -5,7 +5,7 @@ object Dependencies {
   private val awsVersion = "2.17.58"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "16.1.0"
-  private val sttpVersion = "3.3.15"
+  private val sttpVersion = "3.3.18"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
