@@ -28,7 +28,7 @@ object Dependencies {
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.2.11"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
-  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.36.0.2"
+  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.36.0.3"
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "1.0.0-RC1"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
