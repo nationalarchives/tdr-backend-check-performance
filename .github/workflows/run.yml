@@ -4,12 +4,12 @@ on:
     inputs:
       create-resources:
         type: boolean
-        required: true
+        required: false
         default: false
         description: Create the resources needed for the performance check
       destroy-resources:
         type: boolean
-        required: true
+        required: false
         default: false
         description: Destroy the resources for the performance checks
       files:
@@ -61,4 +61,3 @@ jobs:
           terraform destroy --auto-approve > /dev/null
         env:
           TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
-
