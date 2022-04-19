@@ -17,6 +17,8 @@ on:
         required: true
         default: ""
         description: A space separated list of folder names as found in the `tdr-upload-test-data` bucket in the Sandbox environment
+permissions:
+  id-token: write
 jobs:
   run:
     runs-on: ubuntu-latest
