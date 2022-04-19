@@ -1,0 +1,63 @@
+name: 'Backend check performance run'
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      create-resources:
+        type: boolean
+        required: true
+        default: false
+        description: Create the resources needed for the performance check
+      destroy-resources:
+        type: boolean
+        required: true
+        default: false
+        description: Destroy the resources for the performance checks
+      files:
+        type: string
+        required: true
+        default: ""
+        description: A space separated list of folder names as found in the `tdr-upload-test-data` bucket in the Sandbox environment
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.WORKFLOW_PAT }}
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRoleSbox
+          aws-region: eu-west-2
+          role-session-name: TerraformRole
+      - if: ${{ github.event.inputs.create-resources && github.event.inputs.files != '' }}
+        env:
+          TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
+        run: |
+            cd terraform
+            terraform init
+            terraform workspace select sbox
+            terraform apply --auto-approve > /dev/null
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} consignment-api
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} auth-server
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} file-format-build
+            cd ..
+            sbt 'run -cr ${{ github.event.inputs.files }}'
+      - if: ${{ !github.event.inputs.destroy-resources && github.event.inputs.files != '' }}
+        run: sbt 'run -r ${{ github.event.inputs.files }}'
+      - uses: actions/upload-artifact@v3
+        if: ${{ !github.event.inputs.destroy-resources && github.event.inputs.files != '' }}
+        with:
+          name: report
+          path: report
+      - if: ${{ github.event.inputs.destroy-resources }}
+        run: | 
+          sbt 'run -d ${{ github.event.inputs.files }}'
+          cd terraform
+          terraform init
+          terraform workspace select sbox
+          terraform destroy --auto-approve > /dev/null
+        env:
+          TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
+
