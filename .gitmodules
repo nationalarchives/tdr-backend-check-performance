@@ -1,6 +1,7 @@
 [submodule "terraform/tdr-terraform-modules"]
 	path = terraform/tdr-terraform-modules
 	url = https://github.com/nationalarchives/tdr-terraform-modules.git
-[submodule "terraform/tdr-configurations"]
-	path = terraform/tdr-configurations
-	url = https://github.com/nationalarchives/tdr-configurations.git
+
+[submodule "terraform/tdr-terraform-environments"]
+	path = terraform/tdr-terraform-environments
+	url = https://github.com/nationalarchives/tdr-terraform-environments.git
