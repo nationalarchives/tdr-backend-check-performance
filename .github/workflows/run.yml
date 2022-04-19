@@ -1,6 +1,5 @@
 name: 'Backend check performance run'
 on:
-  push:
   workflow_dispatch:
     inputs:
       create-resources:
