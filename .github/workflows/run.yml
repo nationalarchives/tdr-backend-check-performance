@@ -52,7 +52,7 @@ jobs:
         with:
           name: report
           path: report
-      - if: ${{ github.event.inputs.destroy-resources == true }}
+      - if: github.event.inputs.destroy-resources
         run: | 
           sbt 'run -d ${{ github.event.inputs.files }}'
           cd terraform
