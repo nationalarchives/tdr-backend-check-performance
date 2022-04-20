@@ -40,10 +40,10 @@ jobs:
             terraform init
             terraform workspace select sbox
             terraform apply --auto-approve > /dev/null
+            cd ..
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} consignment-api
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} auth-server
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} file-format-build
-            cd ..
             sbt 'run -cr ${{ github.event.inputs.files }}'
       - if: ${{ !github.event.inputs.destroy-resources && github.event.inputs.files != '' }}
         run: sbt 'run -r ${{ github.event.inputs.files }}'
