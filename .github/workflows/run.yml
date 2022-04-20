@@ -14,7 +14,7 @@ on:
         description: Destroy the resources for the performance checks
       files:
         type: string
-        required: true
+        required: false
         default: ""
         description: A space separated list of folder names as found in the `tdr-upload-test-data` bucket in the Sandbox environment
 permissions:
