@@ -32,7 +32,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRoleSbox
           aws-region: eu-west-2
           role-session-name: TerraformRole
-      - if: ${{ github.event.inputs.create-resources == true && github.event.inputs.files != '' }}
+      - if: ${{ github.event.inputs.create-resources == "true" && github.event.inputs.files != '' }}
         env:
           TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
         run: |
@@ -45,14 +45,14 @@ jobs:
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} auth-server
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} file-format-build
             sbt 'run -cr ${{ github.event.inputs.files }}'
-      - if: ${{ github.event.inputs.destroy-resources == false && github.event.inputs.files != '' }}
+      - if: ${{ github.event.inputs.destroy-resources == "false" && github.event.inputs.files != '' }}
         run: sbt 'run -r ${{ github.event.inputs.files }}'
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event.inputs.destroy-resources == false && github.event.inputs.files != '' }}
+        if: ${{ github.event.inputs.destroy-resources == "false" && github.event.inputs.files != '' }}
         with:
           name: report
           path: report
-      - if: github.event.inputs.destroy-resources
+      - if: ${{ github.event.inputs.destroy-resources == "true" }}
         run: | 
           sbt 'run -d ${{ github.event.inputs.files }}'
           cd terraform
