@@ -273,8 +273,8 @@ module "backend_check_failure_sqs_queue" {
   common_tags = local.common_tags
   project     = var.project
   function    = "backend-check-failure"
-  sqs_policy  = "failure_queue"
   kms_key_id  = module.encryption_key.kms_key_arn
+  depends_on  = [module.mock_transform_engine_parameter]
 }
 
 module "antivirus_sqs_queue" {
@@ -282,11 +282,11 @@ module "antivirus_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "antivirus"
-  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["antivirus"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "download_files_sqs_queue" {
@@ -295,11 +295,11 @@ module "download_files_sqs_queue" {
   project                  = var.project
   function                 = "download-files"
   sns_topic_arns           = [module.dirty_upload_sns_topic.sns_arn]
-  sqs_policy               = "sns_topic"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["download_files"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "checksum_sqs_queue" {
@@ -307,11 +307,11 @@ module "checksum_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "checksum"
-  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["checksum"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "file_format_sqs_queue" {
@@ -319,11 +319,11 @@ module "file_format_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "file-format"
-  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["file_format"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "api_update_queue" {
@@ -331,11 +331,11 @@ module "api_update_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "api-update"
-  sqs_policy               = "api_update_antivirus"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["api_update"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "api_update_lambda" {
@@ -541,6 +541,7 @@ module "keycloak_database" {
   kms_key_id                  = module.encryption_key.kms_key_arn
   private_subnets             = module.shared_vpc.private_subnets
   security_group_ids          = [module.keycloak_database_security_group.security_group_id]
+  engine_version              = "11.13"
 }
 
 module "create_keycloak_db_users_lambda" {
@@ -569,4 +570,24 @@ module "keycloak_route53" {
   alb_zone_id           = module.keycloak_tdr_alb.alb_zone_id
   create_hosted_zone    = false
   hosted_zone_id        = data.aws_route53_zone.tdr_dns_zone.id
+}
+
+module "mock_transform_engine_role" {
+  source             = "./tdr-terraform-modules/iam_role"
+  assume_role_policy = templatefile("./tdr-terraform-modules/ecs/templates/ecs_assume_role_policy.json.tpl", {})
+  common_tags        = local.common_tags
+  name               = "MockTransformEngineRole"
+  policy_attachments = {}
+}
+
+module "mock_transform_engine_parameter" {
+  source      = "./tdr-terraform-modules/ssm_parameter"
+  common_tags = local.common_tags
+  parameters = [{
+    name        = "/${local.environment}/transform_engine/retry_role_arn",
+    type        = "String"
+    value       = module.mock_transform_engine_role.role.arn
+    description = "The mock transform engine role"
+    }
+  ]
 }
