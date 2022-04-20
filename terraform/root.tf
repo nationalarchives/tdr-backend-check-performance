@@ -169,7 +169,7 @@ module "checksum_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key]
+  depends_on                             = [module.encryption_key, module.checksum_sqs_queue]
 }
 
 module "file_format_lambda" {
@@ -188,7 +188,7 @@ module "file_format_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key]
+  depends_on                             = [module.encryption_key, module.file_format_sqs_queue]
 }
 
 module "antivirus_lambda" {
@@ -207,7 +207,7 @@ module "antivirus_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key]
+  depends_on                             = [module.encryption_key, module.antivirus_sqs_queue]
 }
 
 module "download_files_lambda" {
@@ -229,7 +229,7 @@ module "download_files_lambda" {
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
   reserved_concurrency                   = 3
-  depends_on                             = [module.encryption_key]
+  depends_on                             = [module.encryption_key, module.download_files_sqs_queue]
 }
 
 module "dirty_upload_sns_topic" {
@@ -350,7 +350,7 @@ module "api_update_lambda" {
   kms_key_arn                           = module.encryption_key.kms_key_arn
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
-  depends_on                            = [module.encryption_key]
+  depends_on                            = [module.encryption_key, module.api_update_queue]
 }
 
 module "ecr_consignment_api_repository" {
