@@ -33,13 +33,13 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
       Lambda("download-files"),
       Lambda("file-format")
     )
-    if(createResources) {
+    if (createResources) {
       for {
         _ <- updateLambdas(lambdas)
         _ <- IO.println("Finished updating lambdas")
         _ <- retry(invokeLambda, "create-db-users")
         _ <- IO.sleep(1.minutes) //Give the database users time to create
-        _ <- retry(invokeLambda,"create-keycloak-db-user")
+        _ <- retry(invokeLambda, "create-keycloak-db-user")
         _ <- retry(invokeLambda, "database-migrations")
         _ <- IO.println("Finished invoking lambdas")
         _ <- runFileFormatTask()
@@ -53,53 +53,73 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
   }
 
   def createFileCheckResults(files: List[Path], createResults: Boolean): IO[Unit] = {
-    if(createResults) {
-      {
+    if (createResults) {
+
+      def createUser(): IO[UserCredentials] = IO {
         val userName: String = randomString
         val password: String = randomString
         val userCredentials: UserCredentials = UserCredentials(userName, password)
         KeycloakClient.createUser(userCredentials)
-        val graphqlClient: GraphqlUtility = GraphqlUtility(userCredentials)
+        userCredentials
+      }
 
-        def checkFileProgress(consignmentId: UUID): IO[Unit] = {
-          for {
-            checksComplete <- graphqlClient.areFileChecksComplete(consignmentId)
-            _ <- if(checksComplete) {
-              IO.sleep(30.seconds) >> IO.unit
-            } else {
-              IO.sleep(5.seconds) >> checkFileProgress(consignmentId)
-            }
-          } yield ()
-        }
-
-        val checkNames = List("download-files", "checksum", "yara-av", "file-format", "api-update")
-        val database = Database(checkNames)
-
+      def checkFileProgress(consignmentId: UUID, graphqlUtility: GraphqlUtility): IO[Unit] = {
         for {
-          _ <- database.createTables()
-          _ <- LogUtils.deleteExistingLogStreams(checkNames)
-          _ <- S3Utils.downloadFiles(files)
-          consignment <- graphqlClient.createConsignmentAndFiles()
-          _ <- database.insertFiles(consignment)
-          _ <- S3Utils.uploadConsignmentFiles(UUID.randomUUID(), consignment)
-          _ <- checkFileProgress(consignment.consignmentId)
-          fileCheckResults <- LogUtils.getResults(checkNames)
-          fileTypes <- graphqlClient.getFileTypes(consignment.consignmentId)
-          _ <- database.updateFileFormat(fileTypes)
-          _ <- database.insertResults(fileCheckResults)
-          aggregateResults <- database.getAggregateResults
-          reportGenerator = HtmlReport(aggregateResults)
-          _ <- reportGenerator.createReport()
-          _ <- CsvReport.csvReport(aggregateResults)
+          checksComplete <- graphqlUtility.areFileChecksComplete(consignmentId)
+          _ <- if (checksComplete) {
+            IO.sleep(30.seconds) >> IO.unit
+          } else {
+            IO.sleep(5.seconds) >> IO.println("Checking file check progress") >> checkFileProgress(consignmentId, graphqlUtility)
+          }
         } yield ()
       }
+
+      val checkNames = List("download-files", "checksum", "yara-av", "file-format", "api-update")
+      val database = Database(checkNames)
+
+      for {
+        _ <- IO.println("Creating database tables")
+        _ <- database.createTables()
+        _ <- IO.println("Created database tables; Deleting Log Streams")
+        _ <- LogUtils.deleteExistingLogStreams(checkNames)
+        _ <- IO.println("Deleted log streams; Downloading files")
+        _ <- S3Utils.downloadFiles(files)
+        _ <- IO.println("Files downloaded; Creating user")
+        userCredentials <- createUser()
+        _ <- IO.println("User created; Creating consignment")
+        graphqlUtility = GraphqlUtility(userCredentials)
+        consignment <- graphqlUtility.createConsignmentAndFiles()
+        _ <- IO.println("Created consignment; Inserting files")
+        _ <- database.insertFiles(consignment)
+        _ <- IO.println("Inserted files. Uploading files")
+        _ <- S3Utils.uploadConsignmentFiles(UUID.randomUUID(), consignment)
+        _ <- IO.println("Uploaded files; Checking progress")
+        _ <- checkFileProgress(consignment.consignmentId, graphqlUtility)
+        _ <- IO.println("Getting results")
+        fileCheckResults <- LogUtils.getResults(checkNames)
+        _ <- IO.println("Getting file types")
+        fileTypes <- graphqlUtility.getFileTypes(consignment.consignmentId)
+        _ <- IO.println("Updating file format")
+        _ <- database.updateFileFormat(fileTypes)
+        _ <- IO.println("Inserting results")
+        _ <- database.insertResults(fileCheckResults)
+        _ <- IO.println("Getting aggregate results")
+        aggregateResults <- database.getAggregateResults
+        _ <- IO.println("Generating report")
+        reportGenerator = HtmlReport(aggregateResults)
+        _ <- reportGenerator.createReport()
+        _ <- IO.println("Generating csv")
+        _ <- CsvReport.csvReport(aggregateResults)
+        _ <- IO.println("CSV Generated")
+      } yield ()
+
     } else {
       IO.unit
     }
   }
 
   def destroyResources(destroy: Boolean): IO[Unit] = {
-    if(destroy) {
+    if (destroy) {
       for {
         _ <- LoadBalancerUtils.removeDeletionProtection(List("consignmentapi", "keycloak"))
         _ <- RdsUtils.removeDeletionProtection()
@@ -121,8 +141,10 @@ object Main extends CommandIOApp("performance-checks", "Carry out backend check 
   }
 
   case class FileCheckResults(fileCheckName: String, results: List[Result])
+
   case class Result(fileId: UUID, timeTaken: Double)
 
   def randomString: String = Random.alphanumeric.dropWhile(_.isDigit).take(10).mkString
+
   case class Lambda(repoName: String, lambdaName: Option[String] = None)
 }
