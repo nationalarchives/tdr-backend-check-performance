@@ -6,6 +6,16 @@ provider "aws" {
   }
 }
 
+provider "aws" {
+  region = "us-east-1"
+  alias  = "useast1"
+
+  assume_role {
+    role_arn     = "arn:aws:iam::${var.tdr_account_number}:role/TDRTerraformRoleSbox"
+    session_name = "terraform"
+  }
+}
+
 module "consignment_api" {
   source                         = "./tdr-terraform-environments/modules/consignment-api"
   dns_zone_id                    = data.aws_route53_zone.tdr_dns_zone.zone_id
@@ -70,7 +80,6 @@ module "encryption_key" {
   source      = "./tdr-terraform-modules/kms"
   project     = var.project
   function    = "encryption"
-  key_policy  = "message_system_access"
   environment = local.environment
   common_tags = local.common_tags
 }
@@ -116,6 +125,7 @@ module "create_db_users_lambda" {
   api_database_security_group = module.consignment_api.database_security_group
   lambda_name                 = "create-db-users"
   database_name               = "consignmentapi"
+  depends_on                  = [module.encryption_key]
 }
 
 module "database_migrations" {
@@ -140,6 +150,7 @@ module "backend_checks_efs" {
   nat_gateway_ids              = module.shared_vpc.nat_gateway_ids
   vpc_cidr_block               = module.shared_vpc.vpc_cidr_block
   vpc_id                       = module.shared_vpc.vpc_id
+  depends_on                   = [module.encryption_key]
 }
 
 module "checksum_lambda" {
@@ -158,6 +169,7 @@ module "checksum_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "file_format_lambda" {
@@ -176,6 +188,7 @@ module "file_format_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "antivirus_lambda" {
@@ -194,6 +207,7 @@ module "antivirus_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "download_files_lambda" {
@@ -215,6 +229,7 @@ module "download_files_lambda" {
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
   reserved_concurrency                   = 3
+  depends_on                             = [module.encryption_key]
 }
 
 module "dirty_upload_sns_topic" {
@@ -335,6 +350,7 @@ module "api_update_lambda" {
   kms_key_arn                           = module.encryption_key.kms_key_arn
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
+  depends_on                            = [module.encryption_key]
 }
 
 module "ecr_consignment_api_repository" {
@@ -540,6 +556,7 @@ module "create_keycloak_db_users_lambda" {
   kms_key_arn                      = module.encryption_key.kms_key_arn
   keycloak_password                = module.keycloak_ssm_parameters.params[local.keycloak_user_password_name].value
   keycloak_database_security_group = module.keycloak_database_security_group.security_group_id
+  depends_on                       = [module.encryption_key]
 }
 
 module "keycloak_route53" {
