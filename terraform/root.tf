@@ -150,7 +150,7 @@ module "backend_checks_efs" {
   nat_gateway_ids              = module.shared_vpc.nat_gateway_ids
   vpc_cidr_block               = module.shared_vpc.vpc_cidr_block
   vpc_id                       = module.shared_vpc.vpc_id
-  depends_on                   = [module.encryption_key]
+  depends_on                   = [module.encryption_key, module.checksum_sqs_queue]
 }
 
 module "checksum_lambda" {
@@ -169,7 +169,7 @@ module "checksum_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key, module.checksum_sqs_queue]
+  depends_on                             = [module.encryption_key]
 }
 
 module "file_format_lambda" {
@@ -188,7 +188,7 @@ module "file_format_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key, module.file_format_sqs_queue]
+  depends_on                             = [module.encryption_key]
 }
 
 module "antivirus_lambda" {
@@ -207,7 +207,7 @@ module "antivirus_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
-  depends_on                             = [module.encryption_key, module.antivirus_sqs_queue]
+  depends_on                             = [module.encryption_key]
 }
 
 module "download_files_lambda" {
@@ -229,7 +229,7 @@ module "download_files_lambda" {
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
   reserved_concurrency                   = 3
-  depends_on                             = [module.encryption_key, module.download_files_sqs_queue]
+  depends_on                             = [module.encryption_key]
 }
 
 module "dirty_upload_sns_topic" {
@@ -273,6 +273,7 @@ module "backend_check_failure_sqs_queue" {
   common_tags = local.common_tags
   project     = var.project
   function    = "backend-check-failure"
+  sqs_policy  = "failure_queue"
   kms_key_id  = module.encryption_key.kms_key_arn
   depends_on  = [module.mock_transform_engine_parameter]
 }
@@ -282,6 +283,7 @@ module "antivirus_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "antivirus"
+  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["antivirus"] * 3
@@ -295,6 +297,7 @@ module "download_files_sqs_queue" {
   project                  = var.project
   function                 = "download-files"
   sns_topic_arns           = [module.dirty_upload_sns_topic.sns_arn]
+  sqs_policy               = "sns_topic"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["download_files"] * 3
@@ -307,6 +310,7 @@ module "checksum_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "checksum"
+  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["checksum"] * 3
@@ -319,6 +323,7 @@ module "file_format_sqs_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "file-format"
+  sqs_policy               = "file_checks"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["file_format"] * 3
@@ -331,6 +336,7 @@ module "api_update_queue" {
   common_tags              = local.common_tags
   project                  = var.project
   function                 = "api-update"
+  sqs_policy               = "api_update_antivirus"
   dead_letter_queue        = module.backend_check_failure_sqs_queue.sqs_arn
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["api_update"] * 3
@@ -350,7 +356,7 @@ module "api_update_lambda" {
   kms_key_arn                           = module.encryption_key.kms_key_arn
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
-  depends_on                            = [module.encryption_key, module.api_update_queue]
+  depends_on                            = [module.encryption_key]
 }
 
 module "ecr_consignment_api_repository" {

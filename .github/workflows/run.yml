@@ -39,7 +39,7 @@ jobs:
             cd terraform
             terraform init
             terraform workspace select sbox
-            terraform apply --auto-approve > /dev/null
+            for i in 1 2 3; do terraform apply --auto-approve > /dev/null && break || sleep 20; done
             cd ..
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} consignment-api
             .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} auth-server
