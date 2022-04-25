@@ -4,7 +4,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.2.0"
   private val awsVersion = "2.17.58"
   private val cormorantVersion = "0.5.0-M1"
-  private val keycloakVersion = "16.1.1"
+  private val keycloakVersion = "18.0.0"
   private val sttpVersion = "3.5.2"
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
