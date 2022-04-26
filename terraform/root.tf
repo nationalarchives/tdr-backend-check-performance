@@ -77,11 +77,13 @@ module "alb_logs_s3" {
 }
 
 module "encryption_key" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = var.project
-  function    = "encryption"
-  environment = local.environment
-  common_tags = local.common_tags
+  source           = "./tdr-terraform-modules/kms"
+  project          = var.project
+  function         = "encryption"
+  key_policy       = "message_system_access"
+  policy_variables = { transform_engine_retry_role = module.mock_transform_engine_role.role.arn }
+  environment      = local.environment
+  common_tags      = local.common_tags
 }
 
 module "notifications_topic" {
