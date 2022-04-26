@@ -47,11 +47,6 @@ jobs:
             sbt 'run -cr ${{ github.event.inputs.files }}'
       - if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
         run: sbt 'run -r ${{ github.event.inputs.files }}'
-      - uses: actions/upload-artifact@v3
-        if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
-        with:
-          name: report
-          path: report
       - if: ${{ github.event.inputs.destroy-resources == 'true' }}
         run: | 
           sbt 'run -d ${{ github.event.inputs.files }}'
@@ -61,3 +56,17 @@ jobs:
           terraform destroy --auto-approve > /dev/null
         env:
           TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
+      - uses: actions/checkout@v3
+        with:
+          repository: 'nationalarchives/tdr-scripts'
+          ref: scripts-pages
+          token: ${{ secrets.WORKFLOW_PAT }}
+          path: scripts-pages
+        if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
+      - run: | 
+            mkdir -p scripts-pages/docs/performance/${{ github.run_id }}/
+            cp report/* scripts-pages/docs/performance/${{ github.run_id }}/
+            cd scripts-pages
+            git add docs
+            git commit -m "Add performance checks ${{ github.run_id }}"
+            git push
