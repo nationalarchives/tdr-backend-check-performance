@@ -75,6 +75,10 @@ class GraphqlUtility(userCredentials: UserCredentials) {
       result <- client.result(fcps.document, fcps.Variables(consignmentId))
       data <- IO.fromOption(result.data)(new Exception("No data found"))
       consignment <- IO.fromOption(data.getConsignment)(new Exception("Consignment not found"))
+      _ <- IO.println(consignment.totalFiles)
+      _ <- IO.println(consignment.fileChecks.checksumProgress.filesProcessed)
+      _ <- IO.println(consignment.fileChecks.ffidProgress.filesProcessed)
+      _ <- IO.println(consignment.fileChecks.antivirusProgress.filesProcessed)
     } yield {
       val checks = consignment.fileChecks
       checks.checksumProgress.filesProcessed == consignment.totalFiles &&
