@@ -7,7 +7,7 @@ permissions:
   contents: write
 jobs:
   check:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/terraform_check.yml@allow-other-working-directories
+    uses: nationalarchives/tdr-github-actions/.github/workflows/terraform_check.yml@main
     with:
       working-directory: terraform
     secrets:

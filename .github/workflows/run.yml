@@ -72,3 +72,7 @@ jobs:
             git add docs
             git commit -m "Add performance checks ${{ github.run_id }}"
             git push
+      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
+        with:
+          message: "Backend check peformance run complete. See the <https://nationalarchives.github.io/tdr-scripts/performance/${{ github.run_id }}/output.html|Report>"
+          slack-url: ${{ secrets.SLACK_WEBHOOK }}
