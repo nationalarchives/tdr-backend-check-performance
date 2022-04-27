@@ -6,16 +6,6 @@ provider "aws" {
   }
 }
 
-provider "aws" {
-  region = "us-east-1"
-  alias  = "useast1"
-
-  assume_role {
-    role_arn     = "arn:aws:iam::${var.tdr_account_number}:role/TDRTerraformRoleSbox"
-    session_name = "terraform"
-  }
-}
-
 module "consignment_api" {
   source                         = "./tdr-terraform-environments/modules/consignment-api"
   dns_zone_id                    = data.aws_route53_zone.tdr_dns_zone.zone_id

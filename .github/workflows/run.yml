@@ -74,5 +74,5 @@ jobs:
             git push
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         with:
-          message: "Backend check peformance run complete. See <https://nationalarchives.github.io/tdr-scripts/performance/${{ github.run_id }}/output.html|the report>"
+          message: "Backend check performance run complete. See <https://nationalarchives.github.io/tdr-scripts/performance/${{ github.run_id }}/output.html|the report>"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
