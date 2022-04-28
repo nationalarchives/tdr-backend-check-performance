@@ -5,7 +5,8 @@ import cats.implicits._
 import graphql.codegen.AddConsignment.{addConsignment => ac}
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.{addFilesAndMetadata => afam}
-import graphql.codegen.AddTransferAgreement.{addTransferAgreement => ata}
+import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
+import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetFileCheckProgressSummary.{getFileCheckProgressSummary => fcps}
 import graphql.codegen.GetSeries.{getSeries => gs}
 import graphql.codegen.StartUpload.{startUpload => su}
@@ -39,9 +40,15 @@ class GraphqlUtility(userCredentials: UserCredentials) {
   }
 
   def createTransferAgreement(consignmentId: UUID): Unit = {
-    val client = new UserApiClient[ata.Data, ata.Variables](userCredentials)
-    val input = AddTransferAgreementInput(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = true, appraisalSelectionSignedOff = true, initialOpenRecords = true, sensitivityReviewSignedOff = true)
-    client.result(ata.document, ata.Variables(input))
+    val complianceClient = new UserApiClient[atac.Data, atac.Variables](userCredentials)
+    val complianceInput = AddTransferAgreementComplianceInput(consignmentId, appraisalSelectionSignedOff = true, initialOpenRecords = true, sensitivityReviewSignedOff = true)
+
+    val privateBetaClient = new UserApiClient[atapb.Data, atapb.Variables](userCredentials)
+    val privateBetaInput = AddTransferAgreementPrivateBetaInput(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = true)
+    for {
+      _ <- complianceClient.result(atac.document, atac.Variables(complianceInput))
+      _ <- privateBetaClient.result(atapb.document, atapb.Variables(privateBetaInput))
+    } yield ()
   }
 
   def addFilesAndMetadata(consignmentId: UUID, parentFolderName: String, matchIdInfo: List[MatchIdInfo]): IO[List[afam.AddFilesAndMetadata]] = {
@@ -58,7 +65,7 @@ class GraphqlUtility(userCredentials: UserCredentials) {
         info.matchId
       )
     )
-    val input = AddFileAndMetadataInput(consignmentId, metadataInput)
+    val input = AddFileAndMetadataInput(consignmentId, metadataInput, Nil.some)
     client.result(afam.document, afam.Variables(input)).map(_.data.get.addFilesAndMetadata)
   }
 

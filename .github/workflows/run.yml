@@ -1,0 +1,86 @@
+name: 'Backend check performance run'
+on:
+  workflow_dispatch:
+    inputs:
+      create-resources:
+        type: boolean
+        required: false
+        default: false
+        description: Create the resources needed for the performance check
+      destroy-resources:
+        type: boolean
+        required: false
+        default: false
+        description: Destroy the resources for the performance checks
+      files:
+        type: string
+        required: false
+        default: ""
+        description: A space separated list of folder names as found in the `tdr-upload-test-data` bucket in the Sandbox environment
+permissions:
+  id-token: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.WORKFLOW_PAT }}
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRoleSbox
+          aws-region: eu-west-2
+          role-session-name: TerraformRole
+      - if: ${{ github.event.inputs.create-resources == 'true' && github.event.inputs.files != '' }}
+        env:
+          TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
+        run: |
+            cd terraform
+            terraform init
+            terraform workspace select sbox
+            for i in 1 2 3; do terraform apply --auto-approve > /dev/null && break || sleep 20; done
+            cd ..
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} consignment-api
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} auth-server
+            .github/scripts/copy-docker-images.sh ${{ secrets.MANAGEMENT_ACCOUNT }} ${{ secrets.SANDBOX_ACCOUNT }} file-format-build
+            sbt 'run -cr ${{ github.event.inputs.files }}'
+      - if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
+        run: sbt 'run -r ${{ github.event.inputs.files }}'
+      - if: ${{ github.event.inputs.destroy-resources == 'true' }}
+        run: | 
+          sbt 'run -d ${{ github.event.inputs.files }}'
+          cd terraform
+          terraform init
+          terraform workspace select sbox
+          terraform destroy --auto-approve > /dev/null
+        env:
+          TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
+      - uses: actions/checkout@v3
+        with:
+          repository: 'nationalarchives/tdr-scripts'
+          ref: scripts-pages
+          token: ${{ secrets.WORKFLOW_PAT }}
+          path: scripts-pages
+        if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
+      - run: |
+            git config --global user.email digitalpreservation@nationalarchives.gov.uk
+            git config --global user.name tna-digital-archiving-jenkins
+            mkdir -p scripts-pages/docs/performance/${{ github.run_id }}/
+            cp report/* scripts-pages/docs/performance/${{ github.run_id }}/
+            cd scripts-pages
+            git add docs
+            git commit -m "Add performance checks ${{ github.run_id }}"
+            git push
+      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
+        with:
+          message: "Backend check performance run complete. See <https://nationalarchives.github.io/tdr-scripts/performance/${{ github.run_id }}/output.html|the report>"
+          slack-url: ${{ secrets.SLACK_WEBHOOK }}
