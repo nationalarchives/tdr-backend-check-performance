@@ -67,12 +67,13 @@ module "alb_logs_s3" {
 }
 
 module "encryption_key" {
-  source      = "./tdr-terraform-modules/kms"
-  project     = var.project
-  function    = "encryption"
-  key_policy  = "message_system_access"
-  environment = local.environment
-  common_tags = local.common_tags
+  source           = "./tdr-terraform-modules/kms"
+  project          = var.project
+  function         = "encryption"
+  key_policy       = "message_system_access"
+  policy_variables = { transform_engine_retry_role = module.mock_transform_engine_role.role.arn }
+  environment      = local.environment
+  common_tags      = local.common_tags
 }
 
 module "notifications_topic" {
@@ -116,6 +117,7 @@ module "create_db_users_lambda" {
   api_database_security_group = module.consignment_api.database_security_group
   lambda_name                 = "create-db-users"
   database_name               = "consignmentapi"
+  depends_on                  = [module.encryption_key]
 }
 
 module "database_migrations" {
@@ -140,6 +142,7 @@ module "backend_checks_efs" {
   nat_gateway_ids              = module.shared_vpc.nat_gateway_ids
   vpc_cidr_block               = module.shared_vpc.vpc_cidr_block
   vpc_id                       = module.shared_vpc.vpc_id
+  depends_on                   = [module.encryption_key, module.checksum_sqs_queue]
 }
 
 module "checksum_lambda" {
@@ -158,6 +161,7 @@ module "checksum_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "file_format_lambda" {
@@ -176,6 +180,7 @@ module "file_format_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "antivirus_lambda" {
@@ -194,6 +199,7 @@ module "antivirus_lambda" {
   mount_target_one                       = module.backend_checks_efs.mount_target_one
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
+  depends_on                             = [module.encryption_key]
 }
 
 module "download_files_lambda" {
@@ -215,6 +221,7 @@ module "download_files_lambda" {
   kms_key_arn                            = module.encryption_key.kms_key_arn
   efs_security_group_id                  = module.backend_checks_efs.security_group_id
   reserved_concurrency                   = 3
+  depends_on                             = [module.encryption_key]
 }
 
 module "dirty_upload_sns_topic" {
@@ -260,6 +267,7 @@ module "backend_check_failure_sqs_queue" {
   function    = "backend-check-failure"
   sqs_policy  = "failure_queue"
   kms_key_id  = module.encryption_key.kms_key_arn
+  depends_on  = [module.mock_transform_engine_parameter]
 }
 
 module "antivirus_sqs_queue" {
@@ -272,6 +280,7 @@ module "antivirus_sqs_queue" {
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["antivirus"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "download_files_sqs_queue" {
@@ -285,6 +294,7 @@ module "download_files_sqs_queue" {
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["download_files"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "checksum_sqs_queue" {
@@ -297,6 +307,7 @@ module "checksum_sqs_queue" {
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["checksum"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "file_format_sqs_queue" {
@@ -309,6 +320,7 @@ module "file_format_sqs_queue" {
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["file_format"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "api_update_queue" {
@@ -321,6 +333,7 @@ module "api_update_queue" {
   redrive_maximum_receives = 3
   visibility_timeout       = local.file_check_lambda_timeouts_in_seconds["api_update"] * 3
   kms_key_id               = module.encryption_key.kms_key_arn
+  depends_on               = [module.mock_transform_engine_parameter]
 }
 
 module "api_update_lambda" {
@@ -335,6 +348,7 @@ module "api_update_lambda" {
   kms_key_arn                           = module.encryption_key.kms_key_arn
   private_subnet_ids                    = module.backend_checks_efs.private_subnets
   vpc_id                                = module.shared_vpc.vpc_id
+  depends_on                            = [module.encryption_key]
 }
 
 module "ecr_consignment_api_repository" {
@@ -525,6 +539,7 @@ module "keycloak_database" {
   kms_key_id                  = module.encryption_key.kms_key_arn
   private_subnets             = module.shared_vpc.private_subnets
   security_group_ids          = [module.keycloak_database_security_group.security_group_id]
+  engine_version              = "11.13"
 }
 
 module "create_keycloak_db_users_lambda" {
@@ -540,6 +555,7 @@ module "create_keycloak_db_users_lambda" {
   kms_key_arn                      = module.encryption_key.kms_key_arn
   keycloak_password                = module.keycloak_ssm_parameters.params[local.keycloak_user_password_name].value
   keycloak_database_security_group = module.keycloak_database_security_group.security_group_id
+  depends_on                       = [module.encryption_key]
 }
 
 module "keycloak_route53" {
@@ -552,4 +568,24 @@ module "keycloak_route53" {
   alb_zone_id           = module.keycloak_tdr_alb.alb_zone_id
   create_hosted_zone    = false
   hosted_zone_id        = data.aws_route53_zone.tdr_dns_zone.id
+}
+
+module "mock_transform_engine_role" {
+  source             = "./tdr-terraform-modules/iam_role"
+  assume_role_policy = templatefile("./tdr-terraform-modules/ecs/templates/ecs_assume_role_policy.json.tpl", {})
+  common_tags        = local.common_tags
+  name               = "MockTransformEngineRole"
+  policy_attachments = {}
+}
+
+module "mock_transform_engine_parameter" {
+  source      = "./tdr-terraform-modules/ssm_parameter"
+  common_tags = local.common_tags
+  parameters = [{
+    name        = "/${local.environment}/transform_engine/retry_role_arn",
+    type        = "String"
+    value       = module.mock_transform_engine_role.role.arn
+    description = "The mock transform engine role"
+    }
+  ]
 }
