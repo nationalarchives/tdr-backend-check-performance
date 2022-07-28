@@ -4,7 +4,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.3.0"
   private val awsVersion = "2.17.58"
   private val cormorantVersion = "0.5.0-M1"
-  private val keycloakVersion = "18.0.2"
+  private val keycloakVersion = "19.0.0"
   private val sttpVersion = "3.7.1"
 
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.249"
