@@ -33,7 +33,7 @@ object Dependencies {
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val catsRetry = "com.github.cb372" %% "cats-retry" % "3.1.0"
-  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.11.1"
+  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
   lazy val cormorant = "io.chrisdavenport" %% "cormorant-core" % cormorantVersion
   lazy val cormorantGeneric = "io.chrisdavenport" %% "cormorant-generic" % cormorantVersion
 }
