@@ -7,7 +7,7 @@ object Dependencies {
   private val keycloakVersion = "19.0.2"
   private val sttpVersion = "3.8.2"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.266"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.267"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
@@ -25,7 +25,7 @@ object Dependencies {
   lazy val loadBalancing = "software.amazon.awssdk" % "elasticloadbalancingv2" % awsVersion
   lazy val rds = "software.amazon.awssdk" % "rds" % awsVersion
   lazy val logs = "software.amazon.awssdk" % "cloudwatchlogs" % awsVersion
-  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.1"
+  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.3"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
   lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.39.3.0"
