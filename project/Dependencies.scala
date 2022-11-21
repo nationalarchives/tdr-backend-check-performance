@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val monovoreDeclineVersion = "2.3.1"
+  private val monovoreDeclineVersion = "2.4.0"
   private val awsVersion = "2.17.58"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "20.0.1"
@@ -13,7 +13,7 @@ object Dependencies {
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.73"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.1"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
   lazy val ecs = "software.amazon.awssdk" % "ecs" % awsVersion
   lazy val ec2 = "software.amazon.awssdk" % "ec2" % awsVersion
@@ -25,10 +25,10 @@ object Dependencies {
   lazy val loadBalancing = "software.amazon.awssdk" % "elasticloadbalancingv2" % awsVersion
   lazy val rds = "software.amazon.awssdk" % "rds" % awsVersion
   lazy val logs = "software.amazon.awssdk" % "cloudwatchlogs" % awsVersion
-  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.4"
+  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.5"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
-  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.39.4.0"
+  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.39.4.1"
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "1.0.0-RC2"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
