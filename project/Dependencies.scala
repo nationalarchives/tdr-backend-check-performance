@@ -7,7 +7,7 @@ object Dependencies {
   private val keycloakVersion = "20.0.2"
   private val sttpVersion = "3.8.5"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.289"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.290"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
