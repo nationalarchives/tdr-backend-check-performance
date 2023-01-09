@@ -2,10 +2,10 @@ import sbt._
 
 object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsVersion = "2.19.9"
+  private val awsVersion = "2.19.12"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "20.0.2"
-  private val sttpVersion = "3.8.6"
+  private val sttpVersion = "3.8.7"
 
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.292"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
