@@ -2,16 +2,16 @@ import sbt._
 
 object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsVersion = "2.19.12"
+  private val awsVersion = "2.19.13"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "20.0.2"
   private val sttpVersion = "3.8.7"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.292"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.295"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
-  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.79"
+  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.82"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.4"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
