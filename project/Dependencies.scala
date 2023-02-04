@@ -13,7 +13,7 @@ object Dependencies {
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.86"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.5"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.6"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
   lazy val ecs = "software.amazon.awssdk" % "ecs" % awsVersion
   lazy val ec2 = "software.amazon.awssdk" % "ec2" % awsVersion
