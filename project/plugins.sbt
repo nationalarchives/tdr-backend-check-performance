@@ -1,3 +1,3 @@
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.13")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.14")
 libraryDependencies += "com.sun.activation" % "javax.activation" % "1.2.0"
 addSbtPlugin("com.github.sbt" % "sbt-release" % "1.1.0")
