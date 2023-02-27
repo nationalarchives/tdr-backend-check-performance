@@ -7,7 +7,7 @@ object Dependencies {
   private val keycloakVersion = "21.0.0"
   private val sttpVersion = "3.8.11"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.307"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.309"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
@@ -28,7 +28,7 @@ object Dependencies {
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.5"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
-  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.40.1.0"
+  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.41.0.0"
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "1.0.0-RC2"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
