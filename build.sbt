@@ -11,7 +11,7 @@ lazy val setLatestTagOutput = taskKey[Unit]("Sets a GitHub actions output for th
 
 setLatestTagOutput := {
   val fileWriter = new FileWriter(sys.env("GITHUB_OUTPUT"), true)
-  fileWriter.write(s"latest-tag=${(ThisBuild / version).value}")
+  fileWriter.write(s"latest-tag=${(ThisBuild / version).value}\n")
   fileWriter.close()
 }
 
