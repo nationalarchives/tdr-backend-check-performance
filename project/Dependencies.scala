@@ -25,7 +25,7 @@ object Dependencies {
   lazy val loadBalancing = "software.amazon.awssdk" % "elasticloadbalancingv2" % awsVersion
   lazy val rds = "software.amazon.awssdk" % "rds" % awsVersion
   lazy val logs = "software.amazon.awssdk" % "cloudwatchlogs" % awsVersion
-  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.5"
+  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.6"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
   lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.41.0.0"
