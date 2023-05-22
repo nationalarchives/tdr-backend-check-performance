@@ -7,11 +7,11 @@ object Dependencies {
   private val keycloakVersion = "21.1.1"
   private val sttpVersion = "3.8.15"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.324"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.325"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
-  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.105"
+  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.106"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.0"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
@@ -28,7 +28,7 @@ object Dependencies {
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
-  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.41.2.1"
+  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.41.2.2"
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "1.0.0-RC2"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
