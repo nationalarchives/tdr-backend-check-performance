@@ -5,7 +5,7 @@ object Dependencies {
   private val awsVersion = "2.20.1"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "21.1.2"
-  private val sttpVersion = "3.8.15"
+  private val sttpVersion = "3.8.16"
 
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.335"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
