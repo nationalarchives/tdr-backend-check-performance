@@ -4,10 +4,10 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
   private val awsVersion = "2.20.1"
   private val cormorantVersion = "0.5.0-M1"
-  private val keycloakVersion = "22.0.1"
+  private val keycloakVersion = "22.0.3"
   private val sttpVersion = "3.9.0"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.344"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.345"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
