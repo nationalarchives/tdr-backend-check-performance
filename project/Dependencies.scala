@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsVersion = "2.21.0"
+  private val awsVersion = "2.21.2"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "22.0.4"
   private val sttpVersion = "3.9.0"
@@ -28,7 +28,7 @@ object Dependencies {
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
-  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.43.2.0"
+  lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.43.2.1"
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "1.0.0-RC4"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
