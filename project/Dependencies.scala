@@ -7,11 +7,11 @@ object Dependencies {
   private val keycloakVersion = "22.0.5"
   private val sttpVersion = "3.9.1"
 
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.352"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.353"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
-  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.138"
+  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.139"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.2"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
