@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsVersion = "2.21.26"
+  private val awsVersion = "2.21.28"
   private val cormorantVersion = "0.5.0-M1"
   private val keycloakVersion = "22.0.5"
   private val sttpVersion = "3.9.1"
