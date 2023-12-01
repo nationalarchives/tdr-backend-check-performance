@@ -2,16 +2,16 @@ import sbt._
 
 object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsVersion = "2.21.29"
+  private val awsVersion = "2.21.36"
   private val cormorantVersion = "0.5.0-M1"
-  private val keycloakVersion = "23.0.0"
+  private val keycloakVersion = "23.0.1"
   private val sttpVersion = "3.9.1"
 
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.353"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.8"
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdmin = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
-  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.139"
+  lazy val graphqlClient =  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.140"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.2"
   lazy val ecr = "software.amazon.awssdk" % "ecr" % awsVersion
@@ -25,7 +25,7 @@ object Dependencies {
   lazy val loadBalancing = "software.amazon.awssdk" % "elasticloadbalancingv2" % awsVersion
   lazy val rds = "software.amazon.awssdk" % "rds" % awsVersion
   lazy val logs = "software.amazon.awssdk" % "cloudwatchlogs" % awsVersion
-  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.11"
+  lazy val logback = "ch.qos.logback" % "logback-classic" % "1.4.13"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpVersion
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpVersion
   lazy val sqlite = "org.xerial" % "sqlite-jdbc" % "3.44.1.0"
