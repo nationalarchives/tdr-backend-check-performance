@@ -72,8 +72,8 @@ jobs:
           path: scripts-pages
         if: ${{ github.event.inputs.destroy-resources == 'false' && github.event.inputs.files != '' }}
       - run: |
-            git config --global user.email digitalpreservation@nationalarchives.gov.uk
-            git config --global user.name tna-digital-archiving-jenkins
+            git config --global 181243999+tna-da-bot@users.noreply.github.com
+            git config --global user.name tna-da-bot
             mkdir -p scripts-pages/docs/performance/${{ github.run_id }}/
             cp report/* scripts-pages/docs/performance/${{ github.run_id }}/
             cd scripts-pages
