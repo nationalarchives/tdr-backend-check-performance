@@ -23,7 +23,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           submodules: recursive
           token: ${{ secrets.WORKFLOW_PAT }}
@@ -64,7 +64,7 @@ jobs:
           terraform destroy --auto-approve > /dev/null
         env:
           TF_VAR_tdr_account_number: ${{ secrets.SANDBOX_ACCOUNT }}
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           repository: 'nationalarchives/tdr-scripts'
           ref: scripts-pages
